@@ -14,6 +14,7 @@ Read this whole document before writing code. Build in the milestone order at th
 - **Local-first.** The local SQLite database is the source of truth. Never block a screen on the network.
 - **Before using any library API, check its current docs** (installed `node_modules/<pkg>/README` or the package's docs site). Several libraries changed APIs recently; do not rely on memory. In particular: in the Vercel AI SDK, `generateObject` is deprecated — use `generateText` with an `output` schema.
 - Keep components small, colocate styles, and put business logic in `packages/shared` or `apps/mobile/src/features/*/logic.ts`, not inside components.
+- **Permissions only during onboarding.** Microphone, notifications and biometrics are requested in the onboarding steps (section 5.8), never at app launch or anywhere else. If the user denies one, the feature falls back (for example keyboard mode). Using that feature later shows a short explanation sheet with an "Open settings" button (Android app settings), never a system prompt.
 - Currency is **UGX by default, no decimals**. Format with thousands separators: `UGX 87,457`. Support USD as a secondary currency (2 decimals).
 
 ## 2. Repository layout (pnpm workspace monorepo)
@@ -48,8 +49,11 @@ meledger/
 | Speech-to-text | `expo-speech-recognition` — prefer on-device recognition (`requiresOnDeviceRecognition` when the device supports it), stream interim results |
 | Text-to-speech (spoken replies) | `expo-speech` |
 | Charts | `victory-native` (Skia) + `@shopify/react-native-skia` |
+| Voice orb | `@shopify/react-native-skia` shader |
+| Gradients | `expo-linear-gradient` (Home header, voice sheet) |
 | Animation/gestures | `react-native-reanimated`, `react-native-gesture-handler` |
-| Bottom sheets | `@gorhom/bottom-sheet` |
+| Bottom sheets | `@gorhom/bottom-sheet`, wrapped by the kit's `Sheet` component |
+| Keyboard handling | `react-native-keyboard-controller` (keyboard-aware forms and sheets) |
 | Forms/validation | `react-hook-form` + `zod` (schemas from `packages/shared`) |
 | Dates | `date-fns` |
 | Notifications | `expo-notifications` (local scheduled reminders) |
@@ -82,7 +86,7 @@ Use the attached inspiration screens for layout, card style, spacing and hierarc
 ### Colour tokens (light theme; derive a dark theme with the same roles)
 | Token | Value | Use |
 | --- | --- | --- |
-| primary | `#0067EE` (blue) | FAB, active tab, toggles, selected chips, header gradient |
+| primary | `#0067EE` (blue) | Primary buttons, toggles, selected chips, header gradient |
 | primaryContainer | `#E4F0FF` | Selected chip backgrounds, Pro badge |
 | headerGradient | `#2684FC → #0067EE` | Home balance header |
 | background | `#F4F4F5` | Screen background |
@@ -286,9 +290,9 @@ Local only (`expo-notifications`): daily log reminder (skip if the user already 
 
 ## 13. Milestones (build in this order)
 
-1. **Scaffold** — monorepo, Expo SDK 57 app with expo-router, Paper theme, Inter font, bottom tabs with centre mic FAB (placeholder screens), NestJS app with health endpoint and the Supabase auth guard, shared package, lint/format, Vitest. *Done when* the app runs on the emulator with the themed tab bar.
+1. **Scaffold** — monorepo, Expo SDK 57 app with expo-router, MeLedger's own UI kit and tokens (section 4), Plus Jakarta Sans, Phosphor icons via the icon registry, floating pill tab bar with the + circle that opens the voice sheet (placeholder screens), NestJS app with health endpoint and the Supabase auth guard, shared package, lint/format, Vitest. *Done when* the app runs on the emulator with the themed tab bar.
 2. **Local data** — Drizzle schema + migrations, seed categories, wallets CRUD, manual add/edit/delete transactions, Home screen with real data. *Done when* a user can add entries by keyboard and see balances update.
-3. **Voice** — speech recognition and the voice screen (both built early in the redesign, including live transcript and the orb), local parser with tests, confirmation cards, undo, vocabulary learning. *Done when* "paid boda 5k and lunch 12k cash" creates two correct entries offline.
+3. **Voice** — speech recognition and the voice sheet (both built early in the redesign, including live transcript and the orb), local parser with tests, confirmation cards, undo, vocabulary learning. *Done when* "paid boda 5k and lunch 12k cash" creates two correct entries offline.
 4. **Report & Plan** — donut/bar charts, category breakdown with vs-last-month, budgets, goals with schedule status band, recurring, debts, savings groups.
 5. **Onboarding & Settings** — onboarding (built early in the redesign; the biometric lock screen itself remains), full settings screens, notifications, biometric lock, CSV export.
 6. **Backend & Pro** — Supabase project + migrations + RLS, Supabase Auth in the app (email OTP and Google sign-in via `@supabase/supabase-js`, session in MMKV), NestJS guard verifying those tokens, entitlements, paywall, simulated payment, `/api/parse`, `/api/ask`, insights, sync.
@@ -306,4 +310,4 @@ Create `.env.example` files; never commit real keys.
 
 ## 15. Design references
 
-The design inspiration images are attached alongside this prompt (Home, Report, My Plan, Settings, Add New, Subscription, goal card, category cards, income/expense cards, insight bar, donut chart, and the dark "Use your voice" onboarding and weekly bar chart from Budget Buddy). Match their layout, spacing and card styling; replace "$" with UGX formatting, replace the "+" FAB with the mic FAB, and use Material icons and Android conventions throughout.
+The design inspiration images are attached alongside this prompt (Home, Report, My Plan, Settings, Add New, Subscription, goal card, category cards, income/expense cards, insight bar, donut chart, and the dark "Use your voice" onboarding and weekly bar chart from Budget Buddy). Match their layout, spacing and card styling; replace "$" with UGX formatting, and keep the + in its own white circle beside the tab pill (it opens the voice sheet). The images are not the colour source: always use the MeLedger tokens (section 4, `apps/mobile/src/theme/tokens.ts`) even where a screenshot shows other colours. Build everything with MeLedger's own components and Phosphor icons (not Material), following Android conventions.
