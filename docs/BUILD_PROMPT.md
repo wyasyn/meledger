@@ -68,7 +68,7 @@ meledger/
 | Scheduling | `@nestjs/schedule` for the weekly insights job |
 | AI | Vercel AI SDK (`ai`) + `@ai-sdk/google` (framework-agnostic, runs in NestJS services) |
 | Models | Parsing: `gemini-3.5-flash-lite`. Advisor/reports: `gemini-3.6-flash`. Read both IDs from env vars `AI_PARSE_MODEL` and `AI_ADVISOR_MODEL` so they can change without a deploy. Verify the exact model ID strings against the provider docs before first use. |
-| DB/Auth | Supabase (`@supabase/supabase-js`, server-side with service role only where needed) |
+| DB/Auth | Supabase (`@supabase/supabase-js`, server-side with the secret key (`sb_secret_...`) only where needed) |
 | Validation | `zod` schemas from `packages/shared` |
 | Rate limiting | Per-user daily quota stored in Supabase (`ai_usage` table) |
 | Luganda STT | Sunbird AI speech-to-text API, proxied by `/api/stt` |
@@ -299,8 +299,8 @@ After each milestone, summarise what was built, what was tested, and anything le
 
 ## 14. Environment variables
 
-`apps/mobile/.env`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_API_URL`
-`apps/api/.env`: `PORT`, `SUPABASE_URL`, `SUPABASE_JWKS_URL` (or `SUPABASE_JWT_SECRET` on older projects), `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `AI_PARSE_MODEL=gemini-3.5-flash-lite`, `AI_ADVISOR_MODEL=gemini-3.6-flash`, `SUNBIRD_API_KEY`, `DAILY_PARSE_QUOTA`, `DAILY_ASK_QUOTA`
+`apps/mobile/.env`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_...`), `EXPO_PUBLIC_API_URL`
+`apps/api/.env`: `PORT`, `SUPABASE_URL`, `SUPABASE_JWKS_URL` (or `SUPABASE_JWT_SECRET` on older projects), `SUPABASE_SECRET_KEY` (`sb_secret_...`), `GOOGLE_GENERATIVE_AI_API_KEY`, `AI_PARSE_MODEL=gemini-3.5-flash-lite`, `AI_ADVISOR_MODEL=gemini-3.6-flash`, `SUNBIRD_API_KEY`, `DAILY_PARSE_QUOTA`, `DAILY_ASK_QUOTA`
 
 Create `.env.example` files; never commit real keys.
 

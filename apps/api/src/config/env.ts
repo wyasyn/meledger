@@ -9,7 +9,8 @@ export const EnvSchema = z.object({
   SUPABASE_URL: z.url(),
   /** Defaults to `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`. */
   SUPABASE_JWKS_URL: z.preprocess(blankToUndefined, z.url().optional()),
-  SUPABASE_SERVICE_ROLE_KEY: optional,
+  /** Server-only secret key (sb_secret_...); bypasses RLS. */
+  SUPABASE_SECRET_KEY: optional,
   GOOGLE_GENERATIVE_AI_API_KEY: optional,
   AI_PARSE_MODEL: z.string().default('gemini-3.5-flash-lite'),
   AI_ADVISOR_MODEL: z.string().default('gemini-3.6-flash'),

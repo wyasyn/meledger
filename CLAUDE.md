@@ -5,7 +5,7 @@ Voice-first personal finance tracker and advisor for Android (Uganda first). Use
 ## Read first
 
 - Full spec and milestones: `docs/BUILD_PROMPT.md` — read it before starting any milestone.
-- Design inspiration images: `docs/design/` — match their layout, cards, spacing and colours, adapted to Material 3 on Android.
+- Design inspiration images: `docs/design/`: inspiration for layout, cards, spacing and hierarchy, adapted to Material 3 on Android. They are not the colour source: always use the MeLedger tokens (build prompt section 4, `apps/mobile/src/theme/tokens.ts`), even where a screenshot shows other colours (e.g. Budget Buddy's blue bars or black mic button).
 - Reference domain sheets (income, expenses, categories, goals): `docs/references/`.
 
 ## Stack (do not change without asking)
@@ -25,12 +25,13 @@ Voice-first personal finance tracker and advisor for Android (Uganda first). Use
 - Money stored as integer minor units; UGX default, no decimals, formatted `UGX 87,457`.
 - Shared Zod schemas and the voice parser live in `packages/shared` (no React Native or Node-only imports).
 - Never put API keys in the mobile app. Never store raw audio.
-- Check current library docs before using an API; don't rely on memory.
+- Supabase keys: the app uses the publishable key (`sb_publishable_...`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`); the API uses the secret key (`sb_secret_...`, `SUPABASE_SECRET_KEY`). Never use the legacy `anon` / `service_role` keys (deprecated by end of 2026).
+- **Always use the latest recommended approach, verified in current docs.** Before using any library, service or API (Expo, React Native, Supabase, NestJS, AI SDK, etc.), check its current official docs and changelog; never rely on memory. This applies to config, env var names and keys too, not just code. If `docs/BUILD_PROMPT.md` or existing code uses an approach the docs now mark as legacy or deprecated, don't copy it: tell the user and use the current one (e.g. Supabase publishable/secret keys instead of `anon`/`service_role`).
 - Work one milestone at a time (section 13 of the build prompt). After each: run on the Android emulator, run tests, commit, and summarise what was built and what's open.
 
 ## Expo notes (from the Expo template's AGENTS.md)
 
-- Expo ships breaking changes every SDK release. Before touching an Expo or React Native API, fetch the versioned docs for the installed major (`https://docs.expo.dev/versions/v57.0.0/`) or start from https://docs.expo.dev/llms.txt. Never answer from memory.
+- Expo ships breaking changes every SDK release. Before touching an Expo or React Native API, fetch the versioned docs for the installed major (`https://docs.expo.dev/versions/v57.0.0/`) or start from `https://docs.expo.dev/llms.txt`. Never answer from memory.
 - Always add Expo-compatible packages with `npx expo install <pkg>` (run inside `apps/mobile`); `npx expo install --fix` and `npx expo-doctor` diagnose version problems.
 - Routes live in `apps/mobile/src/app/` (every file is a screen, `_layout.tsx` defines navigators). Keep components, hooks and logic outside `src/app/`. Import `Link`, `router`, `useLocalSearchParams` from `expo-router`.
 - `apps/mobile/android/` is generated (Continuous Native Generation) and gitignored. Never edit it by hand; configure native behaviour in `app.config.ts` and config plugins.
