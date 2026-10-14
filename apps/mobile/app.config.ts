@@ -21,6 +21,8 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    'expo-sqlite',
+    '@react-native-community/datetimepicker',
     [
       'expo-splash-screen',
       {

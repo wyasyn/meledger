@@ -12,6 +12,12 @@ export const palette = {
 
 export const categoryColors = Object.values(palette);
 
+/** Resolves a stored palette key ("violet") to its hex value; hex values pass through. */
+export const paletteColor = (keyOrHex: string): string =>
+  keyOrHex.startsWith('#')
+    ? keyOrHex
+    : (palette[keyOrHex as keyof typeof palette] ?? palette.slate);
+
 export interface ColorTokens {
   primary: string;
   onPrimary: string;

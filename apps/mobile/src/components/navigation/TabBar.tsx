@@ -1,10 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import type { Tabs } from 'expo-router';
-import { type ComponentProps, useState } from 'react';
+import { router, type Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Snackbar, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { showSnackbar, useSnackbar } from '@/features/feedback/snackbar';
 import { lightColors, spacing } from '@/theme/tokens';
 
 import { MicFab } from './MicFab';
@@ -16,7 +17,8 @@ const FAB_SLOT_AFTER = 1; // FAB sits after the second tab (Home, Report | mic |
 
 export function TabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
-  const [notice, setNotice] = useState<string | null>(null);
+  const snackbar = useSnackbar((s) => s.current);
+  const dismissSnackbar = useSnackbar((s) => s.dismiss);
 
   const items = state.routes.map((route, index) => {
     const spec = TABS[route.name];
@@ -61,19 +63,22 @@ export function TabBar({ state, navigation }: TabBarProps) {
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.sm }]}>
       <Snackbar
-        visible={notice !== null}
-        onDismiss={() => setNotice(null)}
-        duration={3000}
+        key={snackbar?.key}
+        visible={snackbar !== null}
+        onDismiss={dismissSnackbar}
+        duration={snackbar?.duration ?? 3000}
+        action={snackbar?.action}
         wrapperStyle={styles.snackbar}
       >
-        {notice ?? ''}
+        {snackbar?.message ?? ''}
       </Snackbar>
       <View style={styles.row}>
         {items.slice(0, FAB_SLOT_AFTER + 1)}
         <View style={styles.fabSlot}>
+          {/* Until the voice sheet (milestone 3) has its keyboard button, tap opens manual entry. */}
           <MicFab
-            onPress={() => setNotice('Voice logging arrives in milestone 3')}
-            onLongPress={() => setNotice('Hold to talk arrives in milestone 3')}
+            onPress={() => router.push('/transaction/new')}
+            onLongPress={() => showSnackbar({ message: 'Hold to talk arrives in milestone 3' })}
           />
         </View>
         {items.slice(FAB_SLOT_AFTER + 1)}
