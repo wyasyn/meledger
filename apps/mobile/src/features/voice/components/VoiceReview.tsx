@@ -48,8 +48,8 @@ interface VoiceReviewProps {
   onDrafts: (drafts: VoiceDraft[]) => void;
   /** Moves the Save bar with the sheet's visible bottom edge while it is dragged. */
   footerStyle?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
-  /** Extra room at the end of the list when the sheet rests below full height. */
-  bottomInset?: number;
+  /** Fixed spacer at the end of the list (room for the lower sheet height). */
+  spacerStyle?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
   /** Called after saving or discarding; the sheet closes. */
   onDone: () => void;
 }
@@ -75,7 +75,7 @@ export function VoiceReview({
   onDrafts,
   onDone,
   footerStyle,
-  bottomInset = 0,
+  spacerStyle,
 }: VoiceReviewProps) {
   const insets = useSafeAreaInsets();
   const [showErrors, setShowErrors] = useState(false);
@@ -167,10 +167,10 @@ export function VoiceReview({
   return (
     <View style={styles.root}>
       <SheetKeyboardScrollView
-        bottomOffset={FOOTER + spacing.lg + bottomInset}
+        bottomOffset={FOOTER + spacing.lg}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: FOOTER + insets.bottom + spacing.lg + bottomInset },
+          { paddingBottom: FOOTER + insets.bottom + spacing.lg },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -199,6 +199,7 @@ export function VoiceReview({
             title={mode === 'edit' ? 'Edit entry' : undefined}
           />
         ))}
+        <Animated.View style={spacerStyle} />
       </SheetKeyboardScrollView>
 
       <Animated.View style={[styles.footerDock, footerStyle]}>

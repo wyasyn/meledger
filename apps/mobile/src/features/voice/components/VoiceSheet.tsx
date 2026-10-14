@@ -21,13 +21,11 @@ import Animated, {
   FadeIn,
   FadeInDown,
   interpolate,
-  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
@@ -167,7 +165,7 @@ function SheetBackground({ style }: BottomSheetBackgroundProps) {
 function VoicePanel() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { animatedPosition, animatedIndex, snapToIndex } = useBottomSheet();
+  const { animatedPosition, snapToIndex } = useBottomSheet();
   const { animatedLayoutState, animatedDetentsState } = useBottomSheetInternal();
   const { dismiss } = useBottomSheetModal();
   const { status, transcript, level, error, start, stop, cancel } = useSpeechSession();
@@ -369,19 +367,14 @@ function VoicePanel() {
   const footerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: -Math.max(0, hidden.get()) }],
   }));
-  // Once the sheet settles, the list gets that much extra room at the end, so its last fields
-  // can still scroll above the Save bar at the lower height. Updated on settle only.
-  const [hiddenBelow, setHiddenBelow] = useState(0);
-  useAnimatedReaction(
-    () => {
-      const index = animatedIndex.get();
-      const settled = Math.abs(index - Math.round(index)) < 0.001 && index >= 0;
-      return settled ? Math.max(0, Math.round(hidden.get())) : -1;
-    },
-    (next, previous) => {
-      if (next >= 0 && next !== previous) scheduleOnRN(setHiddenBelow, next);
-    },
-  );
+  // Fixed room at the end of the list, as tall as the part of the sheet hidden at its lower
+  // height, so the last fields can still scroll above the Save bar there. It depends only on
+  // the snap points, so nothing in the list changes while the sheet moves or settles.
+  const spacerStyle = useAnimatedStyle(() => {
+    const { detents, highestDetentPosition } = animatedDetentsState.get();
+    const lowest = detents && detents.length > 0 ? Math.max(...detents) : 0;
+    return { height: Math.max(0, lowest - (highestDetentPosition ?? lowest)) };
+  });
   const controlsStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: controlsTop.get() }],
   }));
@@ -434,7 +427,7 @@ function VoicePanel() {
         <Animated.View style={[styles.review, reviewStyle]}>
           <VoiceReview
             footerStyle={footerStyle}
-            bottomInset={hiddenBelow}
+            spacerStyle={spacerStyle}
             transcript={shown.mode === 'voice' ? transcript : ''}
             mode={shown.mode}
             editId={request.mode === 'edit' ? request.transactionId : undefined}

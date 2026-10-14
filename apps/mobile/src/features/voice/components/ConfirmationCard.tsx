@@ -167,15 +167,14 @@ export function ConfirmationCard({
             </PressableScale>
           )}
         />
-        {total > 1 ? (
-          <IconButton
-            icon="close"
-            label="Remove this entry"
-            variant="surface"
-            size={36}
-            onPress={onRemove}
-          />
-        ) : null}
+        {/* With several entries it removes this one; on its own it closes the sheet. */}
+        <IconButton
+          icon="close"
+          label={total > 1 ? 'Remove this entry' : 'Close'}
+          variant="surface"
+          size={36}
+          onPress={onRemove}
+        />
       </View>
 
       <AccountCard
