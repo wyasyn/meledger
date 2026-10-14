@@ -1,4 +1,3 @@
-import { BottomSheetView } from '@gorhom/bottom-sheet';
 import type { Ref } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
@@ -27,7 +26,7 @@ export function WalletPickerSheet({
 }: WalletPickerSheetProps) {
   return (
     <Sheet ref={ref} title={title}>
-      <BottomSheetView style={styles.list}>
+      <View style={styles.list}>
         {wallets
           .filter((w) => !w.archived || w.id === selectedId)
           .map((wallet) => (
@@ -53,7 +52,7 @@ export function WalletPickerSheet({
               ) : null}
             </Pressable>
           ))}
-      </BottomSheetView>
+      </View>
     </Sheet>
   );
 }

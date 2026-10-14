@@ -1,9 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatAmount } from '@meledger/shared';
+import { formatAmount, formatMoney } from '@meledger/shared';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { Icon } from '@/components/ui/Icon';
 import { type IconName, IconTile } from '@/components/ui/IconTile';
 import type { Category, Tag, Transaction, Wallet } from '@/db/schema';
 import { lightColors, paletteColor, radius, spacing } from '@/theme/tokens';
@@ -43,11 +43,25 @@ export function TransactionRow({
   const amountText = transfer
     ? formatAmount(tx.amount, 'UGX')
     : `${sign}${formatAmount(tx.amount, 'UGX')}`;
+  const fee = transfer && tx.feeAmount > 0 ? `Fee ${formatAmount(tx.feeAmount, 'UGX')}` : null;
+  const a11yLabel = [
+    title,
+    transfer
+      ? `transfer of ${formatMoney(tx.amount, 'UGX')} from ${wallet?.name ?? 'unknown wallet'} to ${toWallet?.name ?? 'unknown wallet'}`
+      : `${tx.type} of ${formatMoney(tx.amount, 'UGX')}, ${walletLabel}`,
+    fee,
+    tx.note && !transfer && category ? category.name : null,
+    ...tags.map((tag) => tag.name),
+    balanceAfter !== undefined ? `balance after ${formatMoney(balanceAfter, 'UGX')}` : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/transaction/[id]', params: { id: tx.id } })}
       accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
       accessibilityHint="Opens the entry to edit"
       android_ripple={{ color: lightColors.primaryContainer }}
       style={styles.row}
@@ -63,7 +77,7 @@ export function TransactionRow({
         </Text>
         <View style={styles.chips}>
           <View style={styles.walletChip}>
-            <MaterialCommunityIcons
+            <Icon
               name={(wallet?.icon ?? 'wallet-outline') as IconName}
               size={12}
               color={paletteColor(wallet?.color ?? 'slate')}
@@ -72,6 +86,11 @@ export function TransactionRow({
               {walletLabel}
             </Text>
           </View>
+          {fee ? (
+            <Text variant="labelSmall" style={styles.muted} numberOfLines={1}>
+              {fee}
+            </Text>
+          ) : null}
           {tx.note && !transfer && category ? (
             <Text variant="labelSmall" style={styles.muted} numberOfLines={1}>
               {category.name}

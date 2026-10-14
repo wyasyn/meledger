@@ -1,18 +1,19 @@
-import { startOfMonth } from 'date-fns';
 import { create } from 'zustand';
 
+import { monthPeriod, type Period } from './logic';
+
 interface HomeState {
-  /** First day of the month shown on Home. */
-  month: Date;
+  /** Date range shown on Home (cards and transaction list). */
+  period: Period;
   /** Wallet the transaction list is filtered to; null shows all wallets. */
   walletId: string | null;
-  setMonth: (month: Date) => void;
+  setPeriod: (period: Period) => void;
   setWalletId: (walletId: string | null) => void;
 }
 
 export const useHomeStore = create<HomeState>((set) => ({
-  month: startOfMonth(new Date()),
+  period: monthPeriod(new Date()),
   walletId: null,
-  setMonth: (month) => set({ month: startOfMonth(month) }),
+  setPeriod: (period) => set({ period }),
   setWalletId: (walletId) => set({ walletId }),
 }));

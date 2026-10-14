@@ -1,4 +1,4 @@
-import { BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { TagInputSchema } from '@meledger/shared';
 import { type Ref, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -38,7 +38,7 @@ export function TagPickerSheet({ ref, tags, selectedIds, onAdd }: TagPickerSheet
 
   return (
     <Sheet ref={ref} title="Add tag">
-      <BottomSheetView style={styles.body}>
+      <View style={styles.body}>
         <View style={styles.inputRow}>
           <BottomSheetTextInput
             value={name}
@@ -63,7 +63,7 @@ export function TagPickerSheet({ ref, tags, selectedIds, onAdd }: TagPickerSheet
             ))}
           </View>
         ) : null}
-      </BottomSheetView>
+      </View>
     </Sheet>
   );
 }

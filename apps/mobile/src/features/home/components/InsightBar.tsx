@@ -1,7 +1,7 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { Icon } from '@/components/ui/Icon';
 import { showSnackbar } from '@/features/feedback/snackbar';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
@@ -17,11 +17,11 @@ export function InsightBar() {
       accessibilityLabel="Get insights with Pro"
       style={styles.bar}
     >
-      <MaterialCommunityIcons name="star-four-points" size={20} color={lightColors.primary} />
+      <Icon name="star-four-points" size={20} color={lightColors.primary} />
       <Text variant="labelLarge" style={styles.text}>
         Get insights with Pro
       </Text>
-      <MaterialCommunityIcons name="chevron-right" size={20} color="#A1A1AA" />
+      <Icon name="chevron-right" size={20} color="#A1A1AA" />
     </Pressable>
   );
 }

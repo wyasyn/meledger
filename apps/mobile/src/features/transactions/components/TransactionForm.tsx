@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   formatAmount,
@@ -15,6 +14,7 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 import { Button, HelperText, Menu, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/ui/Icon';
 import { FieldCard } from '@/components/ui/FieldCard';
 import { IconTile } from '@/components/ui/IconTile';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
@@ -121,11 +121,7 @@ export function TransactionForm({
                 style={styles.typePill}
               >
                 <Text variant="labelLarge">{TYPE_LABELS[values.type]}</Text>
-                <MaterialCommunityIcons
-                  name="chevron-down"
-                  size={18}
-                  color={lightColors.onSurface}
-                />
+                <Icon name="chevron-down" size={18} color={lightColors.onSurface} />
               </Pressable>
             }
           >
@@ -197,11 +193,7 @@ export function TransactionForm({
               <Text variant="titleMedium" style={styles.flex}>
                 {category?.name ?? 'Choose a category'}
               </Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={22}
-                color={lightColors.onSurfaceVariant}
-              />
+              <Icon name="chevron-right" size={22} color={lightColors.onSurfaceVariant} />
             </View>
           </FieldCard>
         )}
@@ -229,7 +221,7 @@ export function TransactionForm({
               accessibilityLabel="Add tag"
               style={styles.addTag}
             >
-              <MaterialCommunityIcons name="plus" size={16} color={lightColors.onSurfaceVariant} />
+              <Icon name="plus" size={16} color={lightColors.onSurfaceVariant} />
               <Text variant="labelLarge" style={styles.muted}>
                 Add tag
               </Text>
@@ -247,11 +239,7 @@ export function TransactionForm({
             <Text variant="titleMedium" style={styles.flex}>
               {dateLabel(values.occurredAt)}
             </Text>
-            <MaterialCommunityIcons
-              name="calendar-month-outline"
-              size={22}
-              color={lightColors.onSurface}
-            />
+            <Icon name="calendar-month-outline" size={22} color={lightColors.onSurface} />
           </Pressable>
         </FieldCard>
 

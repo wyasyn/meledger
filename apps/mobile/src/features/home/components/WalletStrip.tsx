@@ -1,8 +1,8 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/IconTile';
 import type { Wallet } from '@/db/schema';
 import { lightColors, paletteColor, radius, spacing } from '@/theme/tokens';
@@ -55,11 +55,7 @@ function StripChip({ label, icon, color, selected = false, onPress }: StripChipP
       style={[styles.chip, selected && styles.chipSelected]}
     >
       {icon ? (
-        <MaterialCommunityIcons
-          name={icon as IconName}
-          size={16}
-          color={color ?? lightColors.onSurfaceVariant}
-        />
+        <Icon name={icon as IconName} size={16} color={color ?? lightColors.onSurfaceVariant} />
       ) : null}
       <Text variant="labelLarge" style={selected ? styles.labelSelected : undefined}>
         {label}

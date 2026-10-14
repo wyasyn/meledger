@@ -1,7 +1,8 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Icon } from '@/components/ui/Icon';
 import { paletteColor, radius, tint } from '@/theme/tokens';
 
 export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -29,7 +30,7 @@ export function IconTile({ icon, color, size = 44, round = false }: IconTileProp
         },
       ]}
     >
-      <MaterialCommunityIcons name={icon as IconName} size={size * 0.5} color={hex} />
+      <Icon name={icon as IconName} size={size * 0.5} color={hex} />
     </View>
   );
 }

@@ -1,16 +1,17 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatAmount, formatMoney } from '@meledger/shared';
-import { format, startOfMonth, subMonths } from 'date-fns';
+import { startOfMonth, subMonths } from 'date-fns';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { IconButton, Menu, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/ui/Icon';
 import { showSnackbar } from '@/features/feedback/snackbar';
 import { fontFamily } from '@/theme/fonts';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
+import { monthPeriod, periodLabel } from '../logic';
 import { useHomeStore } from '../store';
 
 const WHITE = '#FFFFFF';
@@ -22,11 +23,12 @@ interface BalanceHeaderProps {
   weekChange: number;
 }
 
-/** Violet gradient header with month selector, current balance and change vs last week. */
+/** Violet gradient header with month selector (shows any Home period), current balance and change vs last week. */
 export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
   const insets = useSafeAreaInsets();
-  const month = useHomeStore((s) => s.month);
-  const setMonth = useHomeStore((s) => s.setMonth);
+  const period = useHomeStore((s) => s.period);
+  const setPeriod = useHomeStore((s) => s.setPeriod);
+  const label = periodLabel(period);
   const [menuOpen, setMenuOpen] = useState(false);
   const months = Array.from({ length: 12 }, (_, i) => startOfMonth(subMonths(new Date(), i)));
 
@@ -44,7 +46,7 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
     >
       <View style={styles.topRow}>
         <View style={styles.avatar} accessibilityLabel="Profile">
-          <MaterialCommunityIcons name="account" size={24} color={WHITE} />
+          <Icon name="account" size={24} color={WHITE} />
         </View>
         <Menu
           visible={menuOpen}
@@ -54,23 +56,27 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
             <Pressable
               onPress={() => setMenuOpen(true)}
               accessibilityRole="button"
-              accessibilityLabel={`Month: ${format(month, 'MMMM yyyy')}. Change`}
+              accessibilityLabel={`Period: ${label}. Change`}
               style={styles.monthPill}
             >
               <Text variant="labelLarge" style={styles.white}>
-                {format(month, 'MMMM yyyy')}
+                {label}
               </Text>
-              <MaterialCommunityIcons name="chevron-down" size={18} color={WHITE} />
+              <Icon name="chevron-down" size={18} color={WHITE} />
             </Pressable>
           }
         >
           {months.map((m) => (
             <Menu.Item
               key={m.getTime()}
-              title={format(m, 'MMMM yyyy')}
-              leadingIcon={m.getTime() === month.getTime() ? 'check' : undefined}
+              title={periodLabel(monthPeriod(m))}
+              leadingIcon={
+                period.kind === 'month' && m.getTime() === period.from.getTime()
+                  ? 'check'
+                  : undefined
+              }
               onPress={() => {
-                setMonth(m);
+                setPeriod(monthPeriod(m));
                 setMenuOpen(false);
               }}
             />

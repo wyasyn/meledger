@@ -1,17 +1,21 @@
 import { formatMoney, periodTotals, totalBalanceAt } from '@meledger/shared';
-import { addMonths, format, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { router, useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { useCallback, useMemo } from 'react';
-import { SectionList, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useRef } from 'react';
+import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Icon } from '@/components/ui/Icon';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import type { SheetRef } from '@/components/ui/Sheet';
 import { BalanceHeader } from '@/features/home/components/BalanceHeader';
 import { InsightBar } from '@/features/home/components/InsightBar';
 import { MoneyCards } from '@/features/home/components/MoneyCards';
+import { PeriodSheet } from '@/features/home/components/PeriodSheet';
 import { WalletStrip } from '@/features/home/components/WalletStrip';
+import { periodChipLabel, periodLabel } from '@/features/home/logic';
 import { useHomeStore } from '@/features/home/store';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { groupByDay } from '@/features/transactions/logic';
@@ -21,7 +25,9 @@ import { lightColors, radius, spacing } from '@/theme/tokens';
 export default function HomeScreen() {
   const data = useLedgerData();
   const ledger = useLedger(data);
-  const month = useHomeStore((s) => s.month);
+  const period = useHomeStore((s) => s.period);
+  const setPeriod = useHomeStore((s) => s.setPeriod);
+  const periodSheet = useRef<SheetRef>(null);
   const walletId = useHomeStore((s) => s.walletId);
 
   // The gradient header sits under the status bar, so use light icons while Home is focused.
@@ -34,8 +40,8 @@ export default function HomeScreen() {
 
   const view = useMemo(() => {
     if (!data || !ledger) return undefined;
-    const from = month.getTime();
-    const to = addMonths(month, 1).getTime();
+    const from = period.from.getTime();
+    const to = period.to.getTime();
     const balance = [...ledger.balances.values()].reduce((sum, b) => sum + b, 0);
     const weekChange =
       balance - totalBalanceAt(data.wallets, ledger.entries, subDays(data.loadedAt, 7).getTime());
@@ -55,85 +61,106 @@ export default function HomeScreen() {
       categories: new Map(data.categories.map((c) => [c.id, c])),
       tags: new Map(data.tags.map((t) => [t.id, t])),
     };
-  }, [data, ledger, month, walletId]);
+  }, [data, ledger, period, walletId]);
 
   if (!data || !ledger || !view) return <LoadingScreen />;
+  const label = periodLabel(period);
 
   return (
-    <SectionList
-      style={styles.root}
-      sections={view.sections}
-      keyExtractor={(item) => item.id}
-      stickySectionHeadersEnabled={false}
-      ListHeaderComponent={
-        <>
-          <BalanceHeader balance={view.balance} weekChange={view.weekChange} />
-          <View style={styles.sheet}>
-            <MoneyCards month={month} income={view.totals.income} expense={view.totals.expense} />
-            <InsightBar />
-            <View style={styles.listHeader}>
-              <Text variant="titleMedium">Transactions</Text>
-              <View style={styles.periodChip}>
-                <Text variant="labelMedium" style={styles.periodText}>
-                  For the period
-                </Text>
+    <>
+      <SectionList
+        style={styles.root}
+        sections={view.sections}
+        keyExtractor={(item) => item.id}
+        stickySectionHeadersEnabled={false}
+        ListHeaderComponent={
+          <>
+            <BalanceHeader balance={view.balance} weekChange={view.weekChange} />
+            <View style={styles.sheet}>
+              <MoneyCards
+                periodLabel={label}
+                income={view.totals.income}
+                expense={view.totals.expense}
+              />
+              <InsightBar />
+              <View style={styles.listHeader}>
+                <Text variant="titleMedium">Transactions</Text>
+                <Pressable
+                  onPress={() => periodSheet.current?.present()}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Period: ${label}. Change`}
+                  style={styles.periodChip}
+                >
+                  <Text variant="labelMedium" style={styles.periodText}>
+                    {periodChipLabel(period, new Date())}
+                  </Text>
+                  <Icon name="chevron-down" size={16} color={lightColors.onPrimaryContainer} />
+                </Pressable>
               </View>
+              <WalletStrip wallets={data.wallets} />
             </View>
-            <WalletStrip wallets={data.wallets} />
-          </View>
-        </>
-      }
-      renderSectionHeader={({ section }) => (
-        <View style={styles.dayHeader}>
-          <Text variant="bodySmall" style={styles.muted}>
-            {section.title}
-          </Text>
-          <Text variant="bodySmall" style={styles.muted}>
-            Total{' '}
-            <Text variant="labelLarge" style={styles.dayTotal}>
-              {section.total > 0 ? '+' : ''}
-              {formatMoney(section.total)}
+          </>
+        }
+        renderSectionHeader={({ section }) => (
+          <View style={styles.dayHeader}>
+            <Text variant="bodySmall" style={styles.muted}>
+              {section.title}
             </Text>
-          </Text>
-        </View>
-      )}
-      renderItem={({ item }) => {
-        const tx = view.byId.get(item.id);
-        if (!tx) return null;
-        return (
-          <View style={styles.item}>
-            <TransactionRow
-              tx={tx}
-              category={tx.categoryId ? view.categories.get(tx.categoryId) : undefined}
-              wallet={view.wallets.get(tx.walletId)}
-              toWallet={tx.toWalletId ? view.wallets.get(tx.toWalletId) : undefined}
-              tags={(data.tagIdsByTransaction.get(tx.id) ?? []).flatMap((id) => {
-                const tag = view.tags.get(id);
-                return tag ? [tag] : [];
-              })}
-              balanceAfter={ledger.balanceAfter.get(tx.id)}
-            />
+            <Text variant="bodySmall" style={styles.muted}>
+              Total{' '}
+              <Text variant="labelLarge" style={styles.dayTotal}>
+                {section.total > 0 ? '+' : ''}
+                {formatMoney(section.total)}
+              </Text>
+            </Text>
           </View>
-        );
-      }}
-      ListEmptyComponent={
-        <EmptyState
-          icon="notebook-outline"
-          title={`No entries in ${format(month, 'MMMM')}`}
-          body={
-            walletId
-              ? 'Nothing in this wallet for the month.'
-              : 'Log what you spend and earn to see it here.'
-          }
-          action={
-            <Button mode="contained" icon="plus" onPress={() => router.push('/transaction/new')}>
-              Add an entry
-            </Button>
-          }
-        />
-      }
-      contentContainerStyle={styles.content}
-    />
+        )}
+        renderItem={({ item }) => {
+          const tx = view.byId.get(item.id);
+          if (!tx) return null;
+          return (
+            <View style={styles.item}>
+              <TransactionRow
+                tx={tx}
+                category={tx.categoryId ? view.categories.get(tx.categoryId) : undefined}
+                wallet={view.wallets.get(tx.walletId)}
+                toWallet={tx.toWalletId ? view.wallets.get(tx.toWalletId) : undefined}
+                tags={(data.tagIdsByTransaction.get(tx.id) ?? []).flatMap((id) => {
+                  const tag = view.tags.get(id);
+                  return tag ? [tag] : [];
+                })}
+                balanceAfter={ledger.balanceAfter.get(tx.id)}
+              />
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          <EmptyState
+            icon="notebook-outline"
+            title={`No entries for ${label}`}
+            body={
+              walletId
+                ? 'Nothing in this wallet for this period.'
+                : 'Log what you spend and earn to see it here.'
+            }
+            action={
+              <Button mode="contained" icon="plus" onPress={() => router.push('/transaction/new')}>
+                Add an entry
+              </Button>
+            }
+          />
+        }
+        contentContainerStyle={styles.content}
+      />
+      <PeriodSheet
+        ref={periodSheet}
+        period={period}
+        onSelect={(next) => {
+          setPeriod(next);
+          periodSheet.current?.dismiss();
+        }}
+      />
+    </>
   );
 }
 
@@ -155,6 +182,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   periodChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     backgroundColor: lightColors.primaryContainer,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,

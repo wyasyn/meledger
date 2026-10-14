@@ -2,6 +2,7 @@ import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
   BottomSheetModal,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { type ReactNode, type Ref, useCallback } from 'react';
 import { StyleSheet } from 'react-native';
@@ -15,7 +16,9 @@ export type SheetRef = BottomSheetModal;
 interface SheetProps {
   ref: Ref<BottomSheetModal>;
   title: string;
+  /** Fixed heights for scrolling content; without them the sheet sizes to its content. */
   snapPoints?: (string | number)[];
+  /** With snapPoints, pass a BottomSheet scrollable; otherwise plain views. */
   children: ReactNode;
 }
 
@@ -27,6 +30,11 @@ export function Sheet({ ref, title, snapPoints, children }: SheetProps) {
       <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
     ),
     [],
+  );
+  const heading = (
+    <Text variant="titleMedium" style={styles.title}>
+      {title}
+    </Text>
   );
   return (
     <BottomSheetModal
@@ -40,10 +48,18 @@ export function Sheet({ ref, title, snapPoints, children }: SheetProps) {
       backgroundStyle={styles.background}
       handleIndicatorStyle={styles.handle}
     >
-      <Text variant="titleMedium" style={styles.title}>
-        {title}
-      </Text>
-      {children}
+      {snapPoints ? (
+        <>
+          {heading}
+          {children}
+        </>
+      ) : (
+        // Dynamic sizing measures a single BottomSheetView, so the title must sit inside it.
+        <BottomSheetView>
+          {heading}
+          {children}
+        </BottomSheetView>
+      )}
     </BottomSheetModal>
   );
 }

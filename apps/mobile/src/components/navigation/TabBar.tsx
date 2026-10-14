@@ -1,10 +1,10 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, type Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Snackbar, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/ui/Icon';
 import { showSnackbar, useSnackbar } from '@/features/feedback/snackbar';
 import { lightColors, spacing } from '@/theme/tokens';
 
@@ -45,11 +45,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
         android_ripple={{ color: lightColors.primaryContainer, borderless: true, radius: 36 }}
         style={styles.item}
       >
-        <MaterialCommunityIcons
-          name={focused ? spec.activeIcon : spec.icon}
-          size={24}
-          color={color}
-        />
+        <Icon name={focused ? spec.activeIcon : spec.icon} size={24} color={color} />
         <Text
           variant="labelMedium"
           style={[styles.label, { color }, focused && styles.labelActive]}

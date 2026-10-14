@@ -1,7 +1,7 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { Icon } from '@/components/ui/Icon';
 import type { Tag } from '@/db/schema';
 import { paletteColor, radius, spacing, tint } from '@/theme/tokens';
 
@@ -28,7 +28,7 @@ export function TagChip({ tag, onPress, onRemove, small = false }: TagChipProps)
       <Text variant={small ? 'labelSmall' : 'labelLarge'} style={{ color }}>
         {tag.name}
       </Text>
-      {onRemove ? <MaterialCommunityIcons name="close" size={14} color={color} /> : null}
+      {onRemove ? <Icon name="close" size={14} color={color} /> : null}
     </Pressable>
   );
 }

@@ -1,8 +1,8 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { Icon } from '@/components/ui/Icon';
 import { IconTile } from '@/components/ui/IconTile';
 import { Screen } from '@/components/ui/Screen';
 import { lightColors, radius, spacing } from '@/theme/tokens';
@@ -24,11 +24,7 @@ export default function SettingsScreen() {
           <Text variant="bodyLarge" style={styles.flex}>
             Wallets
           </Text>
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={22}
-            color={lightColors.onSurfaceVariant}
-          />
+          <Icon name="chevron-right" size={22} color={lightColors.onSurfaceVariant} />
         </Pressable>
       </View>
       <Text variant="bodyMedium" style={styles.muted}>

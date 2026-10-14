@@ -1,23 +1,22 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatAmount } from '@meledger/shared';
-import { format } from 'date-fns';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { Icon } from '@/components/ui/Icon';
 import { showSnackbar } from '@/features/feedback/snackbar';
 import { fontFamily } from '@/theme/fonts';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
 interface MoneyCardsProps {
-  month: Date;
+  /** Readable period, e.g. "October 2026" or "12 to 18 Oct 2026". */
+  periodLabel: string;
   income: number;
   expense: number;
 }
 
-/** "Your Money": income and expenses for the selected month. */
-export function MoneyCards({ month, income, expense }: MoneyCardsProps) {
-  const monthName = format(month, 'MMMM');
+/** "Your Money": income and expenses for the selected period. */
+export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
@@ -28,7 +27,7 @@ export function MoneyCards({ month, income, expense }: MoneyCardsProps) {
           style={styles.details}
         >
           <Text variant="labelMedium">Details</Text>
-          <MaterialCommunityIcons name="chevron-right" size={16} color={lightColors.onSurface} />
+          <Icon name="chevron-right" size={16} color={lightColors.onSurface} />
         </Pressable>
       </View>
       <View style={styles.cards}>
@@ -38,7 +37,7 @@ export function MoneyCards({ month, income, expense }: MoneyCardsProps) {
           color={lightColors.income}
           container={lightColors.incomeContainer}
           amount={income}
-          info={`Money received in ${monthName}, across all wallets.`}
+          info={`Money received during ${periodLabel}, across all wallets.`}
         />
         <MoneyCard
           label="Expenses"
@@ -46,7 +45,7 @@ export function MoneyCards({ month, income, expense }: MoneyCardsProps) {
           color={lightColors.expense}
           container={lightColors.expenseContainer}
           amount={expense}
-          info={`Money spent in ${monthName}, including transfer fees.`}
+          info={`Money spent during ${periodLabel}, including transfer fees.`}
         />
       </View>
     </View>
@@ -66,7 +65,7 @@ function MoneyCard({ label, icon, color, container, amount, info }: MoneyCardPro
   return (
     <View style={styles.card}>
       <View style={[styles.tile, { backgroundColor: container }]}>
-        <MaterialCommunityIcons name={icon} size={22} color={color} />
+        <Icon name={icon} size={22} color={color} />
       </View>
       <Pressable
         onPress={() => showSnackbar({ message: info })}
@@ -77,11 +76,7 @@ function MoneyCard({ label, icon, color, container, amount, info }: MoneyCardPro
         <Text variant="bodyMedium" style={styles.muted}>
           {label}
         </Text>
-        <MaterialCommunityIcons
-          name="information-outline"
-          size={16}
-          color={lightColors.onSurfaceVariant}
-        />
+        <Icon name="information-outline" size={16} color={lightColors.onSurfaceVariant} />
       </Pressable>
       <View style={styles.amountRow}>
         <Text variant="labelLarge" style={styles.muted}>
