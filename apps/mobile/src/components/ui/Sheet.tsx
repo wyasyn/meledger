@@ -3,9 +3,11 @@ import {
   type BottomSheetBackdropProps,
   BottomSheetModal,
   BottomSheetView,
+  useBottomSheetTimingConfigs,
 } from '@gorhom/bottom-sheet';
 import { type ReactNode, type Ref, type RefObject, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { Easing } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { lightColors, radius, spacing } from '@/theme/tokens';
@@ -30,6 +32,12 @@ interface SheetProps {
 /** Bottom sheet: large radius, slim handle, title with a close button, dimmed backdrop. */
 export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: SheetProps) {
   const insets = useSafeAreaInsets();
+  // One curve for opening, snapping and closing: eases in and out, so it never starts or
+  // stops abruptly, and never bounces.
+  const animationConfigs = useBottomSheetTimingConfigs({
+    duration: 420,
+    easing: Easing.inOut(Easing.cubic),
+  });
   const backdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -58,6 +66,7 @@ export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: S
       snapPoints={snapPoints}
       enableDynamicSizing={!snapPoints}
       backdropComponent={backdrop}
+      animationConfigs={animationConfigs}
       onDismiss={onDismiss}
       topInset={insets.top + spacing.sm}
       keyboardBlurBehavior="restore"

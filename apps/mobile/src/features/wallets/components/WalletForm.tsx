@@ -8,7 +8,8 @@ import {
 } from '@meledger/shared';
 import type { ReactNode } from 'react';
 import { type Path, type PathValue, useForm, useWatch } from 'react-hook-form';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AmountField } from '@/components/ui/AmountField';
@@ -47,9 +48,10 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
     setValue(key, value, { shouldDirty: true, shouldValidate: formState.isSubmitted });
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior="padding">
+    <View style={styles.root}>
       <ScreenHeader title={title} />
-      <ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={spacing.xxl}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
         keyboardShouldPersistTaps="handled"
       >
@@ -126,8 +128,8 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
 
         <Button label="Save" onPress={handleSubmit(onSubmit)} loading={isSubmitting} block />
         {footer}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
 

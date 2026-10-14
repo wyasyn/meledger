@@ -94,11 +94,18 @@ export function useSpeechSession() {
 
   const stop = useCallback(() => ExpoSpeechRecognitionModule.stop(), []);
 
+  /** Ends the session right away without a result (closing, switching to typing). */
+  const cancel = useCallback(() => {
+    ExpoSpeechRecognitionModule.abort();
+    level.set(0);
+    setStatus('idle');
+  }, [level]);
+
   // Leaving the screen ends the session without delivering a result.
   useEffect(() => () => ExpoSpeechRecognitionModule.abort(), []);
 
   const transcript = [finalText, interim].filter(Boolean).join(' ');
-  return { status, transcript, level, error, start, stop };
+  return { status, transcript, level, error, start, stop, cancel };
 }
 
 /** Whether the microphone permission is granted, without prompting. */

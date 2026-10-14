@@ -10,6 +10,7 @@ import {
   useBottomSheetTimingConfigs,
 } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
+import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
@@ -79,6 +80,8 @@ export function VoiceSheetHost() {
       snapPoints={[`${HALF * 100}%`, '100%']}
       enableDynamicSizing={false}
       enablePanDownToClose
+      // Dragging down or tapping outside must also stop the microphone.
+      onDismiss={() => ExpoSpeechRecognitionModule.abort()}
       topInset={insets.top}
       animationConfigs={animationConfigs}
       backdropComponent={backdrop}
@@ -113,7 +116,7 @@ function VoicePanel() {
   const { animatedPosition } = useBottomSheet();
   const { animatedLayoutState } = useBottomSheetInternal();
   const { dismiss } = useBottomSheetModal();
-  const { status, transcript, level, error, start, stop } = useSpeechSession();
+  const { status, transcript, level, error, start, stop, cancel } = useSpeechSession();
   const holding = useVoiceHold((s) => s.holding);
   const startedByHold = useRef(holding);
 
@@ -151,8 +154,13 @@ function VoicePanel() {
     else begin();
   };
 
-  const typeInstead = () => {
+  const close = () => {
+    cancel();
     dismiss('voice');
+  };
+
+  const typeInstead = () => {
+    close();
     router.push({ pathname: '/transaction/new', params: transcript ? { note: transcript } : {} });
   };
 
@@ -168,6 +176,9 @@ function VoicePanel() {
     () => visible.get() - handleHeight.get() - CONTROLS - bottomPad,
   );
 
+  const canvasStyle = useAnimatedStyle(() => ({
+    height: containerHeight.get() - insets.top - handleHeight.get(),
+  }));
   const controlsStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: controlsTop.get() }],
   }));
@@ -208,80 +219,78 @@ function VoicePanel() {
 
   return (
     <BottomSheetView style={styles.root}>
-      <View style={styles.header}>
-        <View style={styles.titleChip}>
-          <Icon name="sparkle" weight="fill" size={14} color={lightColors.primary} />
-          <Text variant="label">MeLedger</Text>
+      {/* Fixed at the full sheet height: the sheet's own view resizes while dragging, and
+          anything outside its bounds would blink out. */}
+      <Animated.View style={[styles.canvas, canvasStyle]}>
+        <View style={styles.header}>
+          <View style={styles.titleChip}>
+            <Icon name="sparkle" weight="fill" size={14} color={lightColors.primary} />
+            <Text variant="label">MeLedger</Text>
+          </View>
         </View>
-      </View>
 
-      <Animated.View
-        style={[styles.block, blockStyle]}
-        onLayout={(e) => blockHeight.set(e.nativeEvent.layout.height)}
-      >
-        <Orb size={orbSize} mode={mode} level={level} />
-        <ScrollView
-          style={styles.textBox}
-          contentContainerStyle={styles.textContent}
-          showsVerticalScrollIndicator={false}
+        <Animated.View
+          style={[styles.block, blockStyle]}
+          onLayout={(e) => blockHeight.set(e.nativeEvent.layout.height)}
         >
-          <Animated.View key={transcript ? 'speech' : heading} entering={FadeIn.duration(220)}>
-            <Text
-              variant={transcript ? 'title' : 'headline'}
-              align="center"
-              accessibilityLiveRegion="polite"
-            >
-              {heading}
-            </Text>
-          </Animated.View>
-          <Text variant="caption" tone="muted" align="center">
-            {hint}
-          </Text>
-          {status === 'done' && transcript ? (
-            <Animated.View entering={FadeInDown.duration(260)} style={styles.result}>
-              <Button
-                label="Type it in"
-                icon="keyboard"
-                variant="secondary"
-                onPress={typeInstead}
-              />
-            </Animated.View>
-          ) : null}
-        </ScrollView>
-      </Animated.View>
-
-      <Animated.View style={[styles.controls, controlsStyle]}>
-        <IconButton
-          icon="keyboard"
-          label="Type instead"
-          variant="surface"
-          size={56}
-          onPress={typeInstead}
-        />
-        <View style={styles.micWrap}>
-          <Animated.View pointerEvents="none" style={[styles.micGlow, micGlow]} />
-          <PressableScale
-            onPress={toggle}
-            scaleTo={0.92}
-            accessibilityRole="button"
-            accessibilityLabel={listening ? 'Stop listening' : 'Start listening'}
-            style={[styles.mic, listening && styles.micActive]}
+          <Orb size={orbSize} mode={mode} level={level} />
+          <ScrollView
+            style={styles.textBox}
+            contentContainerStyle={styles.textContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Icon
-              name={listening ? 'stop' : 'mic'}
-              weight="fill"
-              size={30}
-              color={listening ? lightColors.onPrimary : lightColors.surface}
-            />
-          </PressableScale>
-        </View>
-        <IconButton
-          icon="close"
-          label="Close"
-          variant="surface"
-          size={56}
-          onPress={() => dismiss('voice')}
-        />
+            <Animated.View key={transcript ? 'speech' : heading} entering={FadeIn.duration(220)}>
+              <Text
+                variant={transcript ? 'title' : 'headline'}
+                align="center"
+                accessibilityLiveRegion="polite"
+              >
+                {heading}
+              </Text>
+            </Animated.View>
+            <Text variant="caption" tone="muted" align="center">
+              {hint}
+            </Text>
+            {status === 'done' && transcript ? (
+              <Animated.View entering={FadeInDown.duration(260)} style={styles.result}>
+                <Button
+                  label="Type it in"
+                  icon="keyboard"
+                  variant="secondary"
+                  onPress={typeInstead}
+                />
+              </Animated.View>
+            ) : null}
+          </ScrollView>
+        </Animated.View>
+
+        <Animated.View style={[styles.controls, controlsStyle]}>
+          <IconButton
+            icon="keyboard"
+            label="Type instead"
+            variant="surface"
+            size={56}
+            onPress={typeInstead}
+          />
+          <View style={styles.micWrap}>
+            <Animated.View pointerEvents="none" style={[styles.micGlow, micGlow]} />
+            <PressableScale
+              onPress={toggle}
+              scaleTo={0.92}
+              accessibilityRole="button"
+              accessibilityLabel={listening ? 'Stop listening' : 'Start listening'}
+              style={[styles.mic, listening && styles.micActive]}
+            >
+              <Icon
+                name={listening ? 'stop' : 'mic'}
+                weight="fill"
+                size={30}
+                color={listening ? lightColors.onPrimary : lightColors.surface}
+              />
+            </PressableScale>
+          </View>
+          <IconButton icon="close" label="Close" variant="surface" size={56} onPress={close} />
+        </Animated.View>
       </Animated.View>
     </BottomSheetView>
   );
@@ -290,7 +299,8 @@ function VoicePanel() {
 const styles = StyleSheet.create({
   background: { borderRadius: radius.sheet, overflow: 'hidden' },
   handle: { backgroundColor: '#C9D3E3', width: 36, height: 5 },
-  root: { flex: 1 },
+  root: { flex: 1, overflow: 'visible' },
+  canvas: { overflow: 'visible' },
   header: { height: HEADER, alignItems: 'center', justifyContent: 'center' },
   titleChip: {
     flexDirection: 'row',

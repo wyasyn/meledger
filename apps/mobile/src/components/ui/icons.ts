@@ -77,7 +77,7 @@ import { PiggyBankIcon } from 'phosphor-react-native/src/icons/PiggyBank';
 import { PillIcon } from 'phosphor-react-native/src/icons/Pill';
 import { PlusIcon } from 'phosphor-react-native/src/icons/Plus';
 import { ReceiptIcon } from 'phosphor-react-native/src/icons/Receipt';
-import { ShapesIcon } from 'phosphor-react-native/src/icons/Shapes';
+import { SquaresFourIcon } from 'phosphor-react-native/src/icons/SquaresFour';
 import { ShieldCheckIcon } from 'phosphor-react-native/src/icons/ShieldCheck';
 import { ShoppingCartIcon } from 'phosphor-react-native/src/icons/ShoppingCart';
 import { SoccerBallIcon } from 'phosphor-react-native/src/icons/SoccerBall';
@@ -187,7 +187,7 @@ const UI = {
   note: NoteIcon,
   pencil: PencilSimpleIcon,
   trash: TrashIcon,
-  category: ShapesIcon,
+  category: SquaresFourIcon,
   sparkle: SparkleIcon,
   star: StarIcon,
   transfer: ArrowsLeftRightIcon,

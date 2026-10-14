@@ -47,6 +47,9 @@ export function AmountField({
           value={value ? formatAmount(value, 'UGX') : ''}
           onChangeText={(text) => onChange(parseAmountInput(text))}
           keyboardType="number-pad"
+          // Money, not a saved value: no autofill bubble or suggestions.
+          autoComplete="off"
+          importantForAutofill="no"
           placeholder="0"
           placeholderTextColor={PLACEHOLDER_COLOR}
           cursorColor={lightColors.primary}
@@ -54,7 +57,8 @@ export function AmountField({
           accessibilityLabel={accessibilityLabel ?? label}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={[styles.input, xl ? typography.amountXL : typography.amount]}
+          // Fixed height and no extra line height: otherwise Android lets the single line scroll.
+          style={[styles.input, xl ? styles.xl : styles.md]}
         />
       </View>
     </FieldCard>
@@ -63,10 +67,14 @@ export function AmountField({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  xl: { ...typography.amountXL, lineHeight: undefined, height: 56 },
+  md: { ...typography.amount, lineHeight: undefined, height: 32 },
   inset: { backgroundColor: lightColors.background, boxShadow: 'none' },
   input: {
     flex: 1,
     padding: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
     color: lightColors.onSurface,
     fontVariant: ['tabular-nums'],
   },

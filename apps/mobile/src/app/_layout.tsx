@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
@@ -31,23 +32,25 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
-        <BottomSheetModalProvider>
-          <StatusBar style="dark" />
-          {database.error ? (
-            <View style={styles.error}>
-              <Text variant="subtitle">Could not open your data</Text>
-              <Text variant="body" tone="muted">
-                {database.error.message}
-              </Text>
-            </View>
-          ) : (
-            <AppStack />
-          )}
-          {/* Before the permission host, so its sheet can stack on top of the voice sheet. */}
-          <VoiceSheetHost />
-          <PermissionSheetHost />
-          {splashDone ? null : <AnimatedSplash onDone={() => setSplashDone(true)} />}
-        </BottomSheetModalProvider>
+        <KeyboardProvider>
+          <BottomSheetModalProvider>
+            <StatusBar style="dark" />
+            {database.error ? (
+              <View style={styles.error}>
+                <Text variant="subtitle">Could not open your data</Text>
+                <Text variant="body" tone="muted">
+                  {database.error.message}
+                </Text>
+              </View>
+            ) : (
+              <AppStack />
+            )}
+            {/* Before the permission host, so its sheet can stack on top of the voice sheet. */}
+            <VoiceSheetHost />
+            <PermissionSheetHost />
+            {splashDone ? null : <AnimatedSplash onDone={() => setSplashDone(true)} />}
+          </BottomSheetModalProvider>
+        </KeyboardProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

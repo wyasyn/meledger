@@ -8,7 +8,8 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { router } from 'expo-router';
 import { useMemo, useRef } from 'react';
 import { type Path, type PathValue, useForm, useWatch } from 'react-hook-form';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AmountField } from '@/components/ui/AmountField';
@@ -39,6 +40,9 @@ const TYPE_LABELS: Record<TransactionType, string> = {
   income: 'Income',
   transfer: 'Transfer',
 };
+
+/** Height of the pinned Save bar, so focused fields scroll clear of it. */
+const FOOTER = 86;
 
 const TYPE_ITEMS = (Object.keys(TYPE_LABELS) as TransactionType[]).map((value) => ({
   value,
@@ -102,13 +106,14 @@ export function TransactionForm({
     const next = new Date(values.occurredAt);
     next.setFullYear(picked.getFullYear(), picked.getMonth(), picked.getDate());
     set('occurredAt', next);
-    dateSheet.current?.dismiss();
+    // Let the new day's highlight show for a moment before the sheet eases away.
+    setTimeout(() => dateSheet.current?.dismiss(), 180);
   };
 
   const submit = handleSubmit(onSubmit);
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior="padding">
+    <View style={styles.root}>
       <ScreenHeader
         title={title}
         right={
@@ -132,7 +137,12 @@ export function TransactionForm({
         }
       />
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      {/* Scrolls the focused field above the keyboard and the Save bar riding on it. */}
+      <KeyboardAwareScrollView
+        bottomOffset={FOOTER + spacing.lg}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         <AccountCard
           label={transfer ? 'From' : 'Account'}
           wallet={walletsById.get(values.walletId)}
@@ -237,9 +247,12 @@ export function TransactionForm({
           multiline
           error={errors.note?.message}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: insets.bottom }}
+        style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
+      >
         {onDelete ? (
           <IconButton
             icon="trash"
@@ -252,7 +265,7 @@ export function TransactionForm({
           />
         ) : null}
         <Button label="Save" onPress={submit} loading={isSubmitting} style={styles.flex} />
-      </View>
+      </KeyboardStickyView>
 
       <DatePickerSheet
         ref={dateSheet}
@@ -301,7 +314,7 @@ export function TransactionForm({
           tagSheet.current?.dismiss();
         }}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

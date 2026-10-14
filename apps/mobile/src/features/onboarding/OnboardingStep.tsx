@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -60,7 +61,7 @@ export function OnboardingStep({
   const index = ONBOARDING_STEPS.indexOf(step);
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior="padding">
+    <View style={styles.root}>
       <View style={[styles.top, { paddingTop: insets.top + spacing.sm }]}>
         {index > 0 ? (
           <IconButton icon="back" label="Back" variant="surface" onPress={() => router.back()} />
@@ -69,7 +70,8 @@ export function OnboardingStep({
         )}
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={160}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -98,9 +100,12 @@ export function OnboardingStep({
             {children}
           </Animated.View>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.lg }]}>
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: insets.bottom }}
+        style={[styles.bottom, { paddingBottom: insets.bottom + spacing.lg }]}
+      >
         <View
           style={styles.dots}
           accessible
@@ -120,8 +125,8 @@ export function OnboardingStep({
         {secondary ? (
           <Button label={secondary.label} variant="ghost" size="sm" onPress={secondary.onPress} />
         ) : null}
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardStickyView>
+    </View>
   );
 }
 
