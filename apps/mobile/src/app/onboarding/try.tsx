@@ -9,7 +9,7 @@ export default function TryStep() {
       step="try"
       hero={<Orb size={180} mode="idle" />}
       title="Try it"
-      body={'Tap below and say: "lunch 10k cash". Your words appear as you speak.'}
+      body={'Tap below and say: "lunch 10k cash". Check the card, then save your first entry.'}
       primary={{ label: 'Continue', onPress: () => nextStep('try') }}
       secondary={{ label: 'Skip', onPress: () => nextStep('try') }}
     >

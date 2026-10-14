@@ -14,10 +14,11 @@ const asColor = (c: string): CategoryColor =>
   c in CATEGORY_COLORS ? (c as CategoryColor) : 'slate';
 
 /**
- * Saves every onboarding answer. Wallets that already exist (matched by name) are kept, and
+ * Saves the chosen wallets. Runs when leaving the wallets step, so the "Try it" step can save a
+ * real entry, and again on finish. Wallets that already exist (matched by name) are kept, and
  * their balance is only set while they have no entries, so existing data never shifts.
  */
-export async function finishOnboarding(): Promise<void> {
+export async function saveOnboardingWallets(): Promise<void> {
   const draft = useOnboarding.getState();
   const existing = await db.select().from(wallets).where(isNull(wallets.deletedAt));
 
@@ -37,6 +38,12 @@ export async function finishOnboarding(): Promise<void> {
       await updateWallet(match.id, { ...input, color: asColor(match.color) });
     }
   }
+}
+
+/** Saves every onboarding answer. */
+export async function finishOnboarding(): Promise<void> {
+  const draft = useOnboarding.getState();
+  await saveOnboardingWallets();
 
   if (draft.goal) {
     await db.insert(goals).values({

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
@@ -5,6 +6,7 @@ import { AmountField } from '@/components/ui/AmountField';
 import { IconTile } from '@/components/ui/IconTile';
 import { Switch } from '@/components/ui/Switch';
 import { Text } from '@/components/ui/Text';
+import { saveOnboardingWallets } from '@/features/onboarding/finish';
 import { nextStep, OnboardingStep } from '@/features/onboarding/OnboardingStep';
 import { useOnboarding } from '@/features/onboarding/store';
 import { WALLET_TYPE_META } from '@/features/wallets/logic';
@@ -14,6 +16,18 @@ export default function WalletsStep() {
   const wallets = useOnboarding((s) => s.wallets);
   const updateWallet = useOnboarding((s) => s.updateWallet);
   const anySelected = wallets.some((w) => w.selected);
+  const [saving, setSaving] = useState(false);
+
+  // The wallets exist from here on, so the "Try it" step can save its entry into one.
+  const next = async () => {
+    setSaving(true);
+    try {
+      await saveOnboardingWallets();
+      nextStep('wallets');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <OnboardingStep
@@ -21,7 +35,7 @@ export default function WalletsStep() {
       icon="wallet"
       title="Your wallets"
       body="Where do you keep money? Add how much is in each right now. You can add more later."
-      primary={{ label: 'Continue', onPress: () => nextStep('wallets'), disabled: !anySelected }}
+      primary={{ label: 'Continue', onPress: next, disabled: !anySelected, loading: saving }}
     >
       {wallets.map((wallet) => {
         const meta = WALLET_TYPE_META[wallet.type];
