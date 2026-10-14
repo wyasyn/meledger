@@ -1,0 +1,1 @@
+-- Seed data for Supabase. Filled in during milestone 6 (backend and Pro).

@@ -1,0 +1,27 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Expo / Android (continuous native generation)
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+*.apk
+*.aab
+
+# Agent skill files
+.agents/
+.claude/skills/
+skills-lock.json
+
+# Expo extras
+expo-env.d.ts
+.metro-health-check*
+.kotlin/
+*.jks
+*.keystore
