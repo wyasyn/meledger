@@ -33,6 +33,7 @@ import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { useSheetBackHandler } from '@/components/ui/useSheetBackHandler';
 import { showPermissionSheet } from '@/features/permissions/store';
 import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData';
 import { mainWalletId } from '@/features/wallets/logic';
@@ -95,6 +96,7 @@ export function VoiceSheetHost() {
   const ref = useRef<BottomSheetModal>(null);
   const requestId = useVoiceSheet((s) => s.requestId);
   const editing = useVoiceSheet((s) => s.request.mode === 'edit');
+  const back = useSheetBackHandler(ref);
 
   useEffect(() => {
     if (requestId > 0) ref.current?.present();
@@ -126,8 +128,12 @@ export function VoiceSheetHost() {
       index={editing ? 1 : 0}
       enableDynamicSizing={false}
       enablePanDownToClose
-      // Dragging down or tapping outside must also stop the microphone.
-      onDismiss={() => ExpoSpeechRecognitionModule.abort()}
+      onChange={back.onChange}
+      // Dragging down, tapping outside or Back must also stop the microphone.
+      onDismiss={() => {
+        back.onDismiss();
+        ExpoSpeechRecognitionModule.abort();
+      }}
       topInset={insets.top}
       animationConfigs={animationConfigs}
       backdropComponent={backdrop}

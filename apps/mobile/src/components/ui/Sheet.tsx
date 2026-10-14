@@ -14,6 +14,7 @@ import { lightColors, radius, spacing } from '@/theme/tokens';
 
 import { IconButton } from './IconButton';
 import { Text } from './Text';
+import { useSheetBackHandler } from './useSheetBackHandler';
 
 export type SheetRef = BottomSheetModal;
 
@@ -50,7 +51,9 @@ export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: S
     ),
     [],
   );
-  const close = () => (ref as RefObject<BottomSheetModal | null>)?.current?.dismiss();
+  const sheetRef = ref as RefObject<BottomSheetModal | null>;
+  const close = () => sheetRef?.current?.dismiss();
+  const back = useSheetBackHandler(sheetRef);
   const heading = (
     <View style={styles.header}>
       <Text variant="title" accessibilityRole="header" style={styles.flex}>
@@ -67,7 +70,11 @@ export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: S
       enableDynamicSizing={!snapPoints}
       backdropComponent={backdrop}
       animationConfigs={animationConfigs}
-      onDismiss={onDismiss}
+      onChange={back.onChange}
+      onDismiss={() => {
+        back.onDismiss();
+        onDismiss?.();
+      }}
       // Pickers opened from another sheet (e.g. the voice sheet's cards) stack on top of it;
       // the default "switch" minimizes the parent, which unmounts the picker with it.
       stackBehavior="push"
