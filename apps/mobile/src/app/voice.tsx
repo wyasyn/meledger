@@ -47,8 +47,6 @@ export default function VoiceScreen() {
       ? 'thinking'
       : 'idle';
   const orbSize = Math.min(width * 0.86, 380);
-  // The sphere is 70% of the orb canvas (see Orb); the ring sits just outside it.
-  const ring = orbSize * 0.7 + 44;
 
   const begin = async () => {
     const result = await start();
@@ -81,12 +79,8 @@ export default function VoiceScreen() {
       params: transcript ? { note: transcript } : {},
     });
 
-  // The halo ring breathes with the voice.
-  const halo = useDerivedValue(() => withSpring(level.get(), { damping: 14, stiffness: 90 }));
-  const haloStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + halo.get() * 0.06 }],
-    opacity: 0.55 + halo.get() * 0.45,
-  }));
+  // The mic's glow breathes with the voice.
+  const halo = useDerivedValue(() => withSpring(level.get(), { damping: 20, stiffness: 50 }));
   const micGlow = useAnimatedStyle(() => ({
     transform: [{ scale: listening ? 1 + halo.get() * 0.35 : 1 }],
     opacity: listening ? 0.35 + halo.get() * 0.4 : 0,
@@ -118,32 +112,14 @@ export default function VoiceScreen() {
         />
 
         <View style={[styles.top, { paddingTop: insets.top + spacing.sm }]}>
-          <IconButton icon="close" label="Close" variant="surface" onPress={() => router.back()} />
           <View style={styles.titleChip}>
             <Icon name="sparkle" weight="fill" size={14} color={lightColors.primary} />
             <Text variant="label">MeLedger</Text>
           </View>
-          <View style={styles.spacer} />
         </View>
 
         <View style={styles.center}>
-          <View style={{ width: orbSize, height: orbSize }}>
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                styles.halo,
-                {
-                  width: ring,
-                  height: ring,
-                  borderRadius: ring / 2,
-                  left: (orbSize - ring) / 2,
-                  top: (orbSize - ring) / 2,
-                },
-                haloStyle,
-              ]}
-            />
-            <Orb size={orbSize} mode={mode} level={level} />
-          </View>
+          <Orb size={orbSize} mode={mode} level={level} />
 
           <ScrollView
             style={styles.textBox}
@@ -215,7 +191,7 @@ const styles = StyleSheet.create({
   top: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: spacing.gutter,
   },
   titleChip: {
@@ -228,13 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: lightColors.surface,
     boxShadow: shadow.card,
   },
-  spacer: { width: 44 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  halo: {
-    position: 'absolute',
-    borderWidth: 1.5,
-    borderColor: tint(lightColors.primary, 0.3),
-  },
   textBox: { flexGrow: 0, maxHeight: 180, alignSelf: 'stretch' },
   textContent: { paddingHorizontal: spacing.xxxl, gap: spacing.sm },
   result: { alignItems: 'center', paddingBottom: spacing.lg },

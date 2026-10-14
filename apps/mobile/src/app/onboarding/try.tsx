@@ -1,0 +1,26 @@
+import { router } from 'expo-router';
+
+import { Button } from '@/components/ui/Button';
+import { nextStep, OnboardingStep } from '@/features/onboarding/OnboardingStep';
+import { Orb } from '@/features/voice/components/Orb';
+
+export default function TryStep() {
+  return (
+    <OnboardingStep
+      step="try"
+      hero={<Orb size={180} mode="idle" />}
+      title="Try it"
+      body={'Tap below and say: "lunch 10k cash". Your words appear as you speak.'}
+      primary={{ label: 'Continue', onPress: () => nextStep('try') }}
+      secondary={{ label: 'Skip', onPress: () => nextStep('try') }}
+    >
+      <Button
+        label="Talk to MeLedger"
+        icon="mic"
+        variant="secondary"
+        block
+        onPress={() => router.push('/voice')}
+      />
+    </OnboardingStep>
+  );
+}

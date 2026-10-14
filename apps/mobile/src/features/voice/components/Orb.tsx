@@ -1,8 +1,10 @@
-import { Canvas, Fill, Shader, Skia, useClock } from '@shopify/react-native-skia';
+import { Canvas, Fill, Shader, Skia } from '@shopify/react-native-skia';
 import { useEffect } from 'react';
 import {
+  Easing,
   type SharedValue,
   useDerivedValue,
+  useFrameCallback,
   useSharedValue,
   withSpring,
   withTiming,
@@ -16,6 +18,7 @@ import {
  */
 const ORB_SHADER = Skia.RuntimeEffect.Make(`
 uniform float2 res;
+// Flow phase, accumulated frame by frame (see Orb) so speed changes never jump.
 uniform float time;
 uniform float energy;
 uniform float level;
@@ -44,11 +47,11 @@ half4 main(float2 xy) {
 
   float z = sqrt(1.0 - d * d);
   float3 n = float3(uv, z);
-  float t = time * (0.18 + 0.55 * energy);
+  float t = time;
 
   // Domain-warped flow, wrapped onto the sphere so it bulges at the edges.
   float2 p = uv / (0.55 + 0.45 * z) * 1.35;
-  float amp = 0.45 + 0.5 * energy + 0.6 * level;
+  float amp = 0.5 + 0.35 * energy + 0.45 * level;
   for (int i = 1; i < 5; i++) {
     float fi = float(i);
     p += amp / fi * sin(p.yx * (1.25 * fi) + float2(t * (0.8 + 0.25 * fi), -t * 0.6) + fi);
@@ -80,7 +83,7 @@ half4 main(float2 xy) {
 
 export type OrbMode = 'idle' | 'listening' | 'thinking';
 
-const ENERGY: Record<OrbMode, number> = { idle: 0.12, listening: 0.45, thinking: 0.9 };
+const ENERGY: Record<OrbMode, number> = { idle: 0.15, listening: 0.4, thinking: 0.6 };
 
 interface OrbProps {
   size: number;
@@ -90,20 +93,28 @@ interface OrbProps {
 }
 
 export function Orb({ size, mode = 'idle', level }: OrbProps) {
-  const clock = useClock();
   const energy = useSharedValue(ENERGY[mode]);
   useEffect(() => {
-    energy.set(withTiming(ENERGY[mode], { duration: 600 }));
+    // Slow, eased change of mood when listening starts or stops.
+    energy.set(withTiming(ENERGY[mode], { duration: 1400, easing: Easing.inOut(Easing.cubic) }));
   }, [mode, energy]);
 
-  // Volume events arrive about every 100ms; a soft spring turns them into smooth motion.
+  // Volume events arrive about every 100ms; a soft, heavy spring turns them into calm swells.
   const smoothLevel = useDerivedValue(() =>
-    withSpring(level ? level.get() : 0, { damping: 14, stiffness: 90, mass: 0.6 }),
+    withSpring(level ? level.get() : 0, { damping: 20, stiffness: 50, mass: 1.2 }),
   );
+
+  // The flow advances by speed x frame time, so a change in speed only changes how fast it
+  // drifts from now on, never where it is.
+  const phase = useSharedValue(0);
+  useFrameCallback((frame) => {
+    const dt = Math.min(frame.timeSincePreviousFrame ?? 16, 64) / 1000;
+    phase.set(phase.get() + dt * (0.12 + 0.3 * energy.get() + 0.2 * smoothLevel.get()));
+  });
 
   const uniforms = useDerivedValue(() => ({
     res: [size, size],
-    time: clock.get() / 1000,
+    time: phase.get(),
     energy: energy.get(),
     level: smoothLevel.get(),
   }));

@@ -13,9 +13,9 @@
       <stop offset="1" stop-color="#0A2C86"/>
     </radialGradient>
     <linearGradient id="swirlA" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#8FF1FF" stop-opacity="0.2"/>
-      <stop offset="0.5" stop-color="#C9F7FF" stop-opacity="1"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.35"/>
+      <stop offset="0" stop-color="#3FE6FF" stop-opacity="0.5"/>
+      <stop offset="0.5" stop-color="#7DF3FF" stop-opacity="1"/>
+      <stop offset="1" stop-color="#E8FDFF" stop-opacity="0.6"/>
     </linearGradient>
     <linearGradient id="swirlB" x1="0" y1="1" x2="1" y2="0">
       <stop offset="0" stop-color="#6FB6FF" stop-opacity="0"/>
@@ -53,12 +53,12 @@
 
   <!-- Inner energy, clipped to the sphere: a rising S-wave (voice) with a cyan backlight -->
   <g clip-path="url(#orb)">
-    <ellipse cx="380" cy="700" rx="220" ry="150" fill="#3FE0FF" opacity="0.45" filter="url(#glow)"/>
-    <ellipse cx="690" cy="330" rx="200" ry="120" fill="#0A2C86" opacity="0.55" filter="url(#glow)"/>
+    <ellipse cx="380" cy="700" rx="230" ry="160" fill="#2FE3FF" opacity="0.7" filter="url(#glow)"/>
+    <ellipse cx="690" cy="330" rx="210" ry="130" fill="#071F6B" opacity="0.7" filter="url(#glow)"/>
     <path d="M 250 690 C 360 690, 420 560, 512 520 S 650 360, 790 350"
           fill="none" stroke="#0E3AA8" stroke-opacity="0.55" stroke-width="90" stroke-linecap="round" filter="url(#soft)"/>
     <path d="M 250 660 C 360 660, 420 540, 512 500 S 650 340, 790 330"
-          fill="none" stroke="url(#swirlA)" stroke-width="40" stroke-linecap="round" filter="url(#soft)"/>
+          fill="none" stroke="url(#swirlA)" stroke-width="58" stroke-linecap="round" filter="url(#soft)"/>
     <path d="M 270 740 C 380 740, 450 640, 540 610 S 680 500, 800 480"
           fill="none" stroke="url(#swirlB)" stroke-width="18" stroke-linecap="round" filter="url(#soft)" opacity="0.75"/>
   </g>

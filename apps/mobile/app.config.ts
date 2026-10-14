@@ -12,7 +12,7 @@ const config: ExpoConfig = {
   android: {
     package: 'com.yasinwalum.meledger',
     adaptiveIcon: {
-      backgroundColor: '#EDE7FE',
+      backgroundColor: '#0A5FE0',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -29,9 +29,10 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#0067EE',
+        // Light page with the living orb; AnimatedSplash takes over from this static frame.
+        backgroundColor: '#F4F4F5',
         image: './assets/images/splash-icon.png',
-        imageWidth: 76,
+        imageWidth: 220,
       },
     ],
   ],

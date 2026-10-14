@@ -28,6 +28,14 @@ export const profile = sqliteTable('profile', {
     .notNull()
     .default('gentle'),
   reminderTime: text('reminder_time').notNull().default('20:00'),
+  /** Daily reminder notification on or off (permission asked in onboarding). */
+  reminderOn: integer('reminder_on', { mode: 'boolean' }).notNull().default(false),
+  /** Ask for fingerprint/face to open the app (lock screen arrives in milestone 5). */
+  biometricLock: integer('biometric_lock', { mode: 'boolean' }).notNull().default(false),
+  /** Onboarding "How you earn". */
+  incomeKind: text('income_kind', { enum: ['salary', 'freelance', 'business', 'irregular'] }),
+  usualIncome: integer('usual_income'),
+  payDay: integer('pay_day'),
 });
 
 export const wallets = sqliteTable('wallets', {
@@ -174,6 +182,7 @@ export const vocabulary = sqliteTable('vocabulary', {
   hits: integer('hits').notNull().default(0),
 });
 
+export type Profile = typeof profile.$inferSelect;
 export type Wallet = typeof wallets.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;

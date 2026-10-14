@@ -40,8 +40,8 @@ meledger/
 | Concern | Library |
 | --- | --- |
 | Framework | Expo SDK 57, expo-router (file-based routing, typed routes) |
-| UI kit | `react-native-paper` (Material 3), custom theme (section 4) |
-| Icons | `@expo/vector-icons` — `MaterialIcons` and `MaterialCommunityIcons` only |
+| UI kit | MeLedger's own components (`src/components/ui`) on React Native + Reanimated; no Material/Paper (section 4) |
+| Icons | `phosphor-react-native` behind the icon registry (`src/components/ui/icons.ts`); data stores semantic icon keys (`packages/shared/src/icons.ts`) |
 | State | `zustand` for UI/session state; `@tanstack/react-query` for all network calls (AI, sync, subscription, auth) |
 | Local DB | `expo-sqlite` + `drizzle-orm` (expo-sqlite driver) with `useLiveQuery`; migrations via drizzle-kit |
 | Key-value | `react-native-mmkv` (settings, flags, Supabase session storage adapter) |
@@ -77,7 +77,7 @@ Never ship API keys in the mobile app. The app sends the user's Supabase access 
 
 ## 4. Design system
 
-Use the attached inspiration screens. Translate their iOS styling into a Material 3 Android app: keep the colours, card style, spacing and hierarchy; use Material components, ripple feedback, Android status/navigation bars (edge-to-edge) and Material icons.
+Use the attached inspiration screens for layout, card style, spacing and hierarchy, built with MeLedger's own design system (not Material): flat white cards on a light grey page with soft shadows, grouped lists, springy press-scale feedback instead of ripples, Phosphor icons (regular, filled for active states), and edge-to-edge Android status/navigation bars. Motion is smooth and intentional: eased fades and short rises, no overshooting springs on content.
 
 ### Colour tokens (light theme; derive a dark theme with the same roles)
 | Token | Value | Use |
@@ -98,19 +98,19 @@ Use the attached inspiration screens. Translate their iOS styling into a Materia
 | category palette | lime `#65A30D`, blue `#2E9BF0`, green `#22C55E`, orange `#F97316`, pink `#EC4899`, teal `#14B8A6`, amber `#F59E0B`, slate `#64748B` | Donut segments, progress bars, icon tiles (tile = colour at ~10% opacity, icon = full colour) |
 
 ### Shape, type, spacing
-- Card radius 20, small elements radius 12, pills fully rounded. No borders on any screen. Cards, list groups, form field cards and chips are flat fills: white on the grey `background`, grey `background` inside a white card; selected chips use `primaryContainer`. Secondary buttons are tonal, not outlined.
-- Font: Inter (via `expo-font`/`@expo-google-fonts/inter`). Sizes: display balance 36/600; screen title 20/600; card title 16/600; body 14/400; label 12/500.
+- Radii: cards 24, fields 18, icon tiles about a third of their size, sheets and popovers 28, pills fully rounded. No borders on any screen. Cards, list groups, form field cards and chips are flat fills: white on the grey `background`, grey `background` inside a white card; selected chips use `primaryContainer`. Secondary buttons are tonal, not outlined.
+- Font: Plus Jakarta Sans (`@expo-google-fonts/plus-jakarta-sans`), scale in `theme/typography.ts`: display balance 40/800, entry amount 44/700, card amount 22/700, screen title 26/700, section title 19/700, row title 16/600, body 15/400, label 14/600, caption 13/500. Money uses tabular figures.
 - Large amounts: number in `onSurface`, currency code in `onSurfaceVariant` and smaller (the inspiration greys the cents; UGX has none, so grey the "UGX" prefix instead).
-- Spacing scale 4/8/12/16/20/24. Screen padding 16.
-- Category icon tile: 44×44 rounded square, tinted background, Material icon centred.
+- Spacing scale 4/8/12/16/20/24/32. Screen padding 20, 28 between sections.
+- Category icon tile: 44×44 rounded square, tinted background, Phosphor icon centred.
 - Progress bars: 8px tall, rounded, tinted track. Goal progress bar has a circular thumb at the current value and a hatched segment for "expected by now".
 - Budget rows: circular percentage ring on the right (ring colour = category colour).
 
 ### Navigation
 Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in its own circle to the right of the pill (labels under icons, active item in `onSurface` with filled icon on a light tint, inactive in `onSurfaceVariant`; content fades into the background behind the bar). The mic is a white circle matching the pill (same outline and shadow, dark mic icon, not "+"). It opens the full-screen voice screen:
 - **Press and hold** = record voice, release = stop and parse.
-- **Tap** = open the voice sheet in tap-to-talk mode.
-- A small keyboard icon button sits beside the voice sheet's mic to switch to manual entry (as in the "Budget Buddy" inspiration, which places a mic and a keyboard button side by side at the bottom).
+- **Tap** = open the voice screen, listening.
+- The voice screen's bottom row is keyboard (manual entry), mic (start/stop) and close, as in the "Budget Buddy" inspiration's mic and keyboard pair.
 
 ## 5. Screens
 
@@ -121,8 +121,8 @@ Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in it
 4. **Transactions** list grouped by day ("Monday, 12 October 2026 · Total UGX 295,776"), with filter chip ("For the period") and pin/history icons. Each row: category icon tile, title (note or category), sub-line with wallet chip and tag/person chips, amount right-aligned (red for expense, green for income), wallet balance after it in grey below.
 5. Wallet strip (horizontal chips: Cash, MTN MoMo, Airtel Money, Bank) above transactions; tapping filters the list.
 
-### 5.2 Voice sheet (bottom sheet, opened from the FAB)
-- Live transcript in large text as the user speaks; animated waveform/pulse ring around the mic.
+### 5.2 Voice screen (`/voice`, full-screen, opened from the tab bar mic)
+- Light page with the MeLedger orb in the centre (a Skia shader in brand blues inside a thin halo ring) that drifts calmly when idle and swells smoothly with the live voice volume. "How can I help?" becomes the live transcript in large text as the user speaks. Only one close control, in the bottom row.
 - On stop: show a spinner briefly, then **one confirmation card per parsed transaction** styled like the "Add New" inspiration: Account row (wallet icon, "Cash (Main wallet)", Change button), Amount (very large, editable), Category, Tag chips (removable, coloured), Date field with calendar icon, Note.
 - Every field is a tappable chip; tapping opens a picker or lets the user re-speak just that field.
 - Buttons: **Save all** (primary), Discard. After save: snackbar "Saved 2 entries · Undo" for 5 seconds.
@@ -157,13 +157,13 @@ Follow the Settings inspiration: blue **MeLedger Pro** banner at the top (sparkl
 **About**: Help, Privacy policy, Version.
 
 ### 5.7 Paywall (`/paywall`, modal)
-Follow the Subscription inspiration: close button, sparkle icon in a blue circle, "Unlock all of MeLedger", one-line subtitle, feature list with coloured Material icons:
+Follow the Subscription inspiration: close button, sparkle icon in a blue circle, "Unlock all of MeLedger", one-line subtitle, feature list with coloured icons:
 AI voice parsing for multi-item entries · Personal finance advisor & weekly insights · Ask questions about your money · Cloud sync & backup across devices · Luganda voice input · Monthly PDF reports.
 Plan options: **Yearly** (highlighted, "Best value" badge) and **Monthly** in UGX. "Subscribe now →" button.
 **Payment is simulated**: if the user has no account, route to sign-up first; then show a fake checkout sheet (mobile money number field, "Pay" button, 2-second loading), call `POST /api/subscription/simulate`, which writes an active subscription row. Make the provider pluggable (`PaymentProvider` interface with `SimulatedProvider`) for a later real integration.
 
 ### 5.8 Onboarding (`/onboarding/*`, shown once)
-Dark full-screen steps in the style of the "Use your voice" inspiration (black background, centred icon in a white circle, bold title, grey body, page dots, white "Continue" pill button):
+Light full-screen steps with the structure of the "Use your voice" inspiration (centred icon in a white circle or the orb, bold title, grey body, page dots, blue "Continue" pill button):
 1. **Welcome** — "Say it, and it's logged." Short animation of a spoken line turning into a card.
 2. **Use your voice** — explains on-device listening; "Nothing you say is stored." Request microphone permission here; show "✓ Microphone enabled" after grant. If denied, continue in keyboard mode.
 3. **Language & currency** — English (Luganda marked "Pro · beta"), base currency UGX, month start day (salary day).
@@ -232,7 +232,7 @@ Identical logical schema locally (Drizzle/SQLite) and in Supabase (Postgres). Ev
 
 Balances, monthly summaries and net worth are **computed** from transactions, never stored.
 
-Seed categories (with Material icon names and palette colours) from both reference sheets plus local ones:
+Seed categories (with icon keys and palette colours) from both reference sheets plus local ones:
 Fixed: Rent/Mortgage, Electricity (Yaka), Water, Gas, Internet, Phone · Food: Groceries, Eating out, Coffee & snacks · Transport: Boda/Taxi, Fuel, Maintenance, Parking, Insurance, Public transport · Shopping: Clothes, Electronics, Beauty, Home goods, Gifts · Medical: Doctor, Medication, Health insurance · Fitness: Gym, Sports, Equipment, Wellness · Entertainment: Movies, Events, Hobbies, Restaurants, Parties, Leisure travel · Family & Education: Childcare, School fees, Books, Materials, Courses · Local: Airtime & Data, Mobile money fees, Family support, Contributions (weddings, burials), Savings group/SACCO, Church/Mosque giving, Business expense.
 Income: Salary, Freelance/Contract, Business, Gifts received, Interest/Dividends, Refunds, Other.
 
@@ -288,9 +288,9 @@ Local only (`expo-notifications`): daily log reminder (skip if the user already 
 
 1. **Scaffold** — monorepo, Expo SDK 57 app with expo-router, Paper theme, Inter font, bottom tabs with centre mic FAB (placeholder screens), NestJS app with health endpoint and the Supabase auth guard, shared package, lint/format, Vitest. *Done when* the app runs on the emulator with the themed tab bar.
 2. **Local data** — Drizzle schema + migrations, seed categories, wallets CRUD, manual add/edit/delete transactions, Home screen with real data. *Done when* a user can add entries by keyboard and see balances update.
-3. **Voice** — speech recognition, voice sheet, local parser with tests, confirmation cards, undo, vocabulary learning. *Done when* "paid boda 5k and lunch 12k cash" creates two correct entries offline.
+3. **Voice** — speech recognition and the voice screen (both built early in the redesign, including live transcript and the orb), local parser with tests, confirmation cards, undo, vocabulary learning. *Done when* "paid boda 5k and lunch 12k cash" creates two correct entries offline.
 4. **Report & Plan** — donut/bar charts, category breakdown with vs-last-month, budgets, goals with schedule status band, recurring, debts, savings groups.
-5. **Onboarding & Settings** — all onboarding steps, full settings screens, notifications, biometric lock, CSV export.
+5. **Onboarding & Settings** — onboarding (built early in the redesign; the biometric lock screen itself remains), full settings screens, notifications, biometric lock, CSV export.
 6. **Backend & Pro** — Supabase project + migrations + RLS, Supabase Auth in the app (email OTP and Google sign-in via `@supabase/supabase-js`, session in MMKV), NestJS guard verifying those tokens, entitlements, paywall, simulated payment, `/api/parse`, `/api/ask`, insights, sync.
 7. **Luganda & share-to-app** — Sunbird STT route, Luganda recording flow, share-intent for mobile money SMS text parsed by the same pipeline.
 8. **Polish** — dark theme, empty states, loading skeletons, error states, accessibility labels, performance pass, EAS build profile for an Android APK.

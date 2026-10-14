@@ -5,14 +5,14 @@ Voice-first personal finance tracker and advisor for Android (Uganda first). Use
 ## Read first
 
 - Full spec and milestones: `docs/BUILD_PROMPT.md` — read it before starting any milestone.
-- Design inspiration images: `docs/design/`: inspiration for layout, cards, spacing and hierarchy, adapted to Material 3 on Android. They are not the colour source: always use the MeLedger tokens (build prompt section 4, `apps/mobile/src/theme/tokens.ts`), even where a screenshot shows other colours. The brand primary is blue `#0067EE`; the tab bar mic is a white circle styled like the tab pill.
+- Design inspiration images: `docs/design/`: inspiration for layout, cards, spacing and hierarchy, built with MeLedger's own design system (not Material). They are not the colour source: always use the MeLedger tokens (build prompt section 4, `apps/mobile/src/theme/tokens.ts`), even where a screenshot shows other colours. The brand primary is blue `#0067EE`; the tab bar mic is a white circle styled like the tab pill.
 - Reference domain sheets (income, expenses, categories, goals): `docs/references/`.
 
 ## Stack (do not change without asking)
 
 - Monorepo (pnpm workspaces): `apps/mobile`, `apps/api`, `packages/shared`, `supabase/`.
 - Android application ID: `com.yasinwalum.meledger`.
-- Mobile: Expo SDK 57 (React Native 0.86), TypeScript strict, expo-router, react-native-paper (MD3), Material icons only, Zustand, TanStack Query, expo-sqlite + Drizzle, MMKV, expo-speech-recognition. **Android only.**
+- Mobile: Expo SDK 57 (React Native 0.86), TypeScript strict, expo-router, MeLedger's own component kit (`apps/mobile/src/components/ui`, React Native + Reanimated, no react-native-paper), Phosphor icons via the icon registry only (`components/ui/icons.ts`), Plus Jakarta Sans, Skia (voice orb), Zustand, TanStack Query, expo-sqlite + Drizzle, MMKV, expo-speech-recognition. **Android only.**
 - Backend: **NestJS** (`apps/api`). Supabase Postgres with RLS.
 - **Auth: Supabase Auth owns all users, sign-up and sign-in.** The app signs in with `@supabase/supabase-js`; NestJS only verifies the Supabase access token with a global guard. Never build a users table or token issuing in NestJS.
 - AI: Vercel AI SDK + `@ai-sdk/google`. Parsing `gemini-3.5-flash-lite`, advisor `gemini-3.6-flash`, both from env vars. Use `generateText` with an `output` schema (`generateObject` is deprecated).

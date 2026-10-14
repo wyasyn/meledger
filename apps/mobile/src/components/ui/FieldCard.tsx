@@ -13,7 +13,7 @@ interface FieldCardProps {
   focused?: boolean;
   onPress?: () => void;
   accessibilityLabel?: string;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle> | false;
   children: ReactNode;
 }
 
@@ -27,7 +27,8 @@ export function FieldCard({
   style,
   children,
 }: FieldCardProps) {
-  const cardStyle = [styles.card, focused && styles.focused, error ? styles.invalid : null, style];
+  // Custom style first, so the focus and error rings always show.
+  const cardStyle = [styles.card, style, focused && styles.focused, error ? styles.invalid : null];
   const body = (
     <>
       {label ? (

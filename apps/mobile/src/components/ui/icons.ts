@@ -72,6 +72,7 @@ import { PaletteIcon } from 'phosphor-react-native/src/icons/Palette';
 import { PencilRulerIcon } from 'phosphor-react-native/src/icons/PencilRuler';
 import { PencilSimpleIcon } from 'phosphor-react-native/src/icons/PencilSimple';
 import { PercentIcon } from 'phosphor-react-native/src/icons/Percent';
+import { PlantIcon } from 'phosphor-react-native/src/icons/Plant';
 import { PiggyBankIcon } from 'phosphor-react-native/src/icons/PiggyBank';
 import { PillIcon } from 'phosphor-react-native/src/icons/Pill';
 import { PlusIcon } from 'phosphor-react-native/src/icons/Plus';
@@ -160,6 +161,7 @@ const STORED: Record<StoredIconKey, PhosphorIcon> = {
   bank: BankIcon,
   card: CreditCardIcon,
   'piggy-bank': PiggyBankIcon,
+  land: PlantIcon,
 };
 
 /** Keys used only by the app's own UI. */
