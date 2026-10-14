@@ -1,8 +1,9 @@
 import { TransactionInputSchema } from '@meledger/shared';
 import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
@@ -45,6 +46,10 @@ interface VoiceReviewProps {
   drafts: VoiceDraft[];
   data: LedgerData;
   onDrafts: (drafts: VoiceDraft[]) => void;
+  /** Moves the Save bar with the sheet's visible bottom edge while it is dragged. */
+  footerStyle?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
+  /** Extra room at the end of the list when the sheet rests below full height. */
+  bottomInset?: number;
   /** Called after saving or discarding; the sheet closes. */
   onDone: () => void;
 }
@@ -69,6 +74,8 @@ export function VoiceReview({
   data,
   onDrafts,
   onDone,
+  footerStyle,
+  bottomInset = 0,
 }: VoiceReviewProps) {
   const insets = useSafeAreaInsets();
   const [showErrors, setShowErrors] = useState(false);
@@ -160,10 +167,10 @@ export function VoiceReview({
   return (
     <View style={styles.root}>
       <SheetKeyboardScrollView
-        bottomOffset={FOOTER + spacing.lg}
+        bottomOffset={FOOTER + spacing.lg + bottomInset}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: FOOTER + insets.bottom + spacing.lg },
+          { paddingBottom: FOOTER + insets.bottom + spacing.lg + bottomInset },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -194,37 +201,39 @@ export function VoiceReview({
         ))}
       </SheetKeyboardScrollView>
 
-      <KeyboardStickyView
-        offset={{ closed: 0, opened: insets.bottom }}
-        style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
-      >
-        {mode === 'edit' ? (
-          <IconButton
-            icon="trash"
-            label="Delete entry"
-            color={lightColors.expense}
-            variant="surface"
-            size={54}
-            onPress={deleteEntry}
-            disabled={saving}
-          />
-        ) : (
+      <Animated.View style={[styles.footerDock, footerStyle]}>
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: insets.bottom }}
+          style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
+        >
+          {mode === 'edit' ? (
+            <IconButton
+              icon="trash"
+              label="Delete entry"
+              color={lightColors.expense}
+              variant="surface"
+              size={54}
+              onPress={deleteEntry}
+              disabled={saving}
+            />
+          ) : (
+            <Button
+              label="Discard"
+              variant="secondary"
+              onPress={onDone}
+              disabled={saving}
+              style={styles.flex}
+            />
+          )}
           <Button
-            label="Discard"
-            variant="secondary"
-            onPress={onDone}
-            disabled={saving}
-            style={styles.flex}
+            label={savable.length > 1 ? 'Save all' : 'Save'}
+            onPress={saveAll}
+            loading={saving}
+            disabled={savable.length === 0}
+            style={styles.grow}
           />
-        )}
-        <Button
-          label={savable.length > 1 ? 'Save all' : 'Save'}
-          onPress={saveAll}
-          loading={saving}
-          disabled={savable.length === 0}
-          style={styles.grow}
-        />
-      </KeyboardStickyView>
+        </KeyboardStickyView>
+      </Animated.View>
 
       <WalletPickerSheet
         ref={walletSheet}
@@ -298,11 +307,8 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   grow: { flex: 2 },
+  footerDock: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     flexDirection: 'row',
     gap: spacing.md,
     paddingHorizontal: spacing.gutter,

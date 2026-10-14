@@ -21,11 +21,13 @@ import Animated, {
   FadeIn,
   FadeInDown,
   interpolate,
+  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
@@ -165,8 +167,8 @@ function SheetBackground({ style }: BottomSheetBackgroundProps) {
 function VoicePanel() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { animatedPosition, snapToIndex } = useBottomSheet();
-  const { animatedLayoutState } = useBottomSheetInternal();
+  const { animatedPosition, animatedIndex, snapToIndex } = useBottomSheet();
+  const { animatedLayoutState, animatedDetentsState } = useBottomSheetInternal();
   const { dismiss } = useBottomSheetModal();
   const { status, transcript, level, error, start, stop, cancel } = useSpeechSession();
   const holding = useVoiceHold((s) => s.holding);
@@ -352,11 +354,34 @@ function VoicePanel() {
   const canvasStyle = useAnimatedStyle(() => ({
     height: containerHeight.get() - insets.top - handleHeight.get(),
   }));
-  // The cards fill only the visible part of the sheet, so while it is dragged or resting at the
-  // lower height the Save bar stays at the visible bottom and the list just gets shorter.
+  // The cards keep their full-height layout while the sheet moves (relaying them out every frame
+  // flickers). Only the Save bar slides, by transform, to stay on the visible bottom edge; how
+  // far the sheet sits below full height is how far it moves up.
+  // Visible height at the top snap point (the sheet's own value; the container may or may not
+  // include the status bar inset, so it is not derived from insets).
+  const fullVisible = useDerivedValue(
+    () => containerHeight.get() - (animatedDetentsState.get().highestDetentPosition ?? insets.top),
+  );
   const reviewStyle = useAnimatedStyle(() => ({
-    height: Math.max(0, visible.get() - handleHeight.get()),
+    height: fullVisible.get() - handleHeight.get(),
   }));
+  const hidden = useDerivedValue(() => fullVisible.get() - visible.get());
+  const footerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -Math.max(0, hidden.get()) }],
+  }));
+  // Once the sheet settles, the list gets that much extra room at the end, so its last fields
+  // can still scroll above the Save bar at the lower height. Updated on settle only.
+  const [hiddenBelow, setHiddenBelow] = useState(0);
+  useAnimatedReaction(
+    () => {
+      const index = animatedIndex.get();
+      const settled = Math.abs(index - Math.round(index)) < 0.001 && index >= 0;
+      return settled ? Math.max(0, Math.round(hidden.get())) : -1;
+    },
+    (next, previous) => {
+      if (next >= 0 && next !== previous) scheduleOnRN(setHiddenBelow, next);
+    },
+  );
   const controlsStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: controlsTop.get() }],
   }));
@@ -408,6 +433,8 @@ function VoicePanel() {
       <BottomSheetView style={styles.root}>
         <Animated.View style={[styles.review, reviewStyle]}>
           <VoiceReview
+            footerStyle={footerStyle}
+            bottomInset={hiddenBelow}
             transcript={shown.mode === 'voice' ? transcript : ''}
             mode={shown.mode}
             editId={request.mode === 'edit' ? request.transactionId : undefined}
