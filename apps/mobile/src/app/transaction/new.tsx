@@ -1,5 +1,5 @@
 import type { TransactionInput } from '@meledger/shared';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
@@ -16,8 +16,6 @@ export default function NewTransactionScreen() {
 }
 
 function NewTransactionForm({ data }: { data: LedgerData }) {
-  // The voice sheet hands over what was said when it could not turn it into an entry.
-  const { note } = useLocalSearchParams<{ note?: string }>();
   const [initial] = useState<TransactionInput>(() => ({
     type: 'expense',
     amount: 0,
@@ -25,7 +23,7 @@ function NewTransactionForm({ data }: { data: LedgerData }) {
     toWalletId: null,
     categoryId: null,
     occurredAt: new Date(),
-    note: note?.slice(0, 200) ?? '',
+    note: '',
     feeAmount: 0,
     tagIds: [],
   }));

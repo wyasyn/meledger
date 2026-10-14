@@ -113,7 +113,10 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  root: { paddingHorizontal: spacing.gutter, paddingBottom: spacing.xxl + spacing.xxxl },
+  root: {
+    paddingHorizontal: spacing.gutter,
+    paddingBottom: spacing.xxl + spacing.xxxl + spacing.lg,
+  },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   avatar: {
     width: 44,
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     height: 40,
   },
-  center: { alignItems: 'center', marginTop: spacing.xxl, gap: spacing.sm },
+  center: { alignItems: 'center', marginTop: spacing.xxxl + spacing.md, gap: spacing.sm },
   amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
   changePill: {
     flexDirection: 'row',

@@ -51,6 +51,8 @@ interface ConfirmationCardProps {
   onChange: (draft: VoiceDraft) => void;
   onRemove: () => void;
   onPick: (field: PickerField) => void;
+  /** Opens the keyboard on the amount (a typed entry starts there). */
+  autoFocusAmount?: boolean;
 }
 
 /**
@@ -67,6 +69,7 @@ export function ConfirmationCard({
   onChange,
   onRemove,
   onPick,
+  autoFocusAmount = false,
 }: ConfirmationCardProps) {
   const { input, parsed } = draft;
   const transfer = input.type === 'transfer';
@@ -196,6 +199,7 @@ export function ConfirmationCard({
         value={input.amount}
         onChange={(amount) => set({ amount })}
         size="xl"
+        autoFocus={autoFocusAmount}
         error={errors.amount}
         attention={
           draft.heardUsd !== null && input.amount === 0

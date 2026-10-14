@@ -28,7 +28,10 @@ import { ConfirmationCard, type DraftErrors, type PickerField } from './Confirma
 const FOOTER = 86;
 
 interface VoiceReviewProps {
+  /** What was said; empty for a typed entry. */
   transcript: string;
+  /** Opened with the keyboard button: saves as a keyboard entry and learns nothing. */
+  typed: boolean;
   drafts: VoiceDraft[];
   data: LedgerData;
   onDrafts: (drafts: VoiceDraft[]) => void;
@@ -48,7 +51,14 @@ function errorsFor(draft: VoiceDraft): DraftErrors {
 }
 
 /** The confirmation cards for what was said, with Save all and Discard (build prompt section 5.2). */
-export function VoiceReview({ transcript, drafts, data, onDrafts, onDone }: VoiceReviewProps) {
+export function VoiceReview({
+  transcript,
+  typed,
+  drafts,
+  data,
+  onDrafts,
+  onDone,
+}: VoiceReviewProps) {
   const insets = useSafeAreaInsets();
   const [showErrors, setShowErrors] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -97,9 +107,13 @@ export function VoiceReview({ transcript, drafts, data, onDrafts, onDone }: Voic
     for (const d of savable) {
       const c = d.parsed.confidence;
       const confidence = Math.min(c.amount, c.type, c.wallet, c.category, c.date);
-      ids.push(await createTransaction(d.input, 'voice', { transcript, confidence }));
+      ids.push(
+        typed
+          ? await createTransaction(d.input, 'keyboard')
+          : await createTransaction(d.input, 'voice', { transcript, confidence }),
+      );
     }
-    await learn(savable.flatMap(learningsFor));
+    if (!typed) await learn(savable.flatMap(learningsFor));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     showSnackbar({
       message: ids.length === 1 ? 'Saved 1 entry' : `Saved ${ids.length} entries`,
@@ -125,12 +139,14 @@ export function VoiceReview({ transcript, drafts, data, onDrafts, onDone }: Voic
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.said}>
-          <Icon name="mic" weight="fill" size={16} color={lightColors.primary} />
-          <Text variant="body" style={styles.flex} numberOfLines={3}>
-            {transcript}
-          </Text>
-        </View>
+        {transcript ? (
+          <View style={styles.said}>
+            <Icon name="mic" weight="fill" size={16} color={lightColors.primary} />
+            <Text variant="body" style={styles.flex} numberOfLines={3}>
+              {transcript}
+            </Text>
+          </View>
+        ) : null}
         {drafts.map((d, i) => (
           <ConfirmationCard
             key={d.key}
@@ -143,6 +159,7 @@ export function VoiceReview({ transcript, drafts, data, onDrafts, onDone }: Voic
             onChange={update}
             onRemove={() => remove(d.key)}
             onPick={(field) => pick(d.key, field)}
+            autoFocusAmount={typed}
           />
         ))}
       </SheetKeyboardScrollView>

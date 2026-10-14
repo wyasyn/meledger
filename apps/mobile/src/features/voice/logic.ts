@@ -87,6 +87,33 @@ export function toDraft(
   };
 }
 
+/** An empty card for typing an entry in the voice sheet; `note` carries anything already said. */
+export function blankDraft(
+  key: string,
+  mainWalletId: string | null,
+  now: Date,
+  note = '',
+): VoiceDraft {
+  const item: ParsedItem = {
+    type: 'expense',
+    amount: null,
+    currency: 'UGX',
+    walletId: mainWalletId,
+    toWalletId: null,
+    categoryId: null,
+    date: isoDay(now),
+    note: note.slice(0, 200),
+    feeAmount: 0,
+    person: null,
+    debt: null,
+    // No heard words, so nothing is learned from a typed entry.
+    phrase: '',
+    confidence: { amount: 1, type: 1, wallet: 1, category: 1, date: 1 },
+    uncertain: [],
+  };
+  return toDraft(item, key, mainWalletId, now);
+}
+
 export interface Learning {
   phrase: string;
   targetType: 'category';

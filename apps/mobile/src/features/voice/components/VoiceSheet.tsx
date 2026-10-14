@@ -13,7 +13,6 @@ import * as Haptics from 'expo-haptics';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatMoney, localParse, type ParseResult } from '@meledger/shared';
-import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
@@ -39,7 +38,14 @@ import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData'
 import { mainWalletId } from '@/features/wallets/logic';
 import { lightColors, radius, shadow, spacing, tint } from '@/theme/tokens';
 
-import { type Answer, answerQuestion, buildParseContext, toDraft, type VoiceDraft } from '../logic';
+import {
+  type Answer,
+  answerQuestion,
+  blankDraft,
+  buildParseContext,
+  toDraft,
+  type VoiceDraft,
+} from '../logic';
 import { useVoiceHold, useVoiceSheet } from '../store';
 import { useSpeechSession } from '../useSpeechSession';
 import { loadVocabulary } from '../vocabulary';
@@ -56,7 +62,8 @@ const THINK_MS = 600;
 /** What the sheet shows after listening. */
 type Outcome =
   | { kind: 'none' }
-  | { kind: 'review'; drafts: VoiceDraft[] }
+  /** `typed`: opened with the keyboard button, so it saves as a keyboard entry. */
+  | { kind: 'review'; drafts: VoiceDraft[]; typed?: boolean }
   | { kind: 'answer'; answer: Answer }
   | { kind: 'notice'; title: string; body: string; typeIt?: boolean };
 
@@ -264,9 +271,17 @@ function VoicePanel() {
     dismiss('voice');
   };
 
+  // Typing opens the same card in this sheet; anything already said becomes the note.
   const typeInstead = () => {
-    close();
-    router.push({ pathname: '/transaction/new', params: transcript ? { note: transcript } : {} });
+    if (!data) return;
+    cancel();
+    const draft = blankDraft(
+      String(Date.now()),
+      mainWalletId(data.wallets),
+      new Date(),
+      transcript,
+    );
+    setOutcome({ kind: 'review', drafts: [draft], typed: true });
   };
 
   // What shows is the sheet container's height minus the sheet's live top position. At full
@@ -335,10 +350,11 @@ function VoicePanel() {
       <BottomSheetView style={styles.root}>
         <Animated.View style={[styles.review, canvasStyle]}>
           <VoiceReview
-            transcript={transcript}
+            transcript={outcome.typed ? '' : transcript}
+            typed={outcome.typed ?? false}
             drafts={outcome.drafts}
             data={data}
-            onDrafts={(drafts) => setOutcome({ kind: 'review', drafts })}
+            onDrafts={(drafts) => setOutcome({ ...outcome, drafts })}
             onDone={close}
           />
         </Animated.View>
