@@ -8,15 +8,18 @@ import {
 } from '@meledger/shared';
 import type { ReactNode } from 'react';
 import { type Path, type PathValue, useForm, useWatch } from 'react-hook-form';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { Button, Chip, Icon } from 'react-native-paper';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AmountField } from '@/components/ui/AmountField';
+import { Button } from '@/components/ui/Button';
+import { Chip, ChipGroup } from '@/components/ui/Chip';
 import { FieldCard } from '@/components/ui/FieldCard';
+import { Icon } from '@/components/ui/Icon';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
-import { AmountInput } from '@/features/transactions/components/TransactionForm';
-import { fontFamily } from '@/theme/fonts';
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { TextField } from '@/components/ui/TextField';
+import { lightColors, spacing } from '@/theme/tokens';
 
 import { WALLET_TYPE_META } from '../logic';
 
@@ -44,123 +47,99 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
     setValue(key, value, { shouldDirty: true, shouldValidate: formState.isSubmitted });
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root} behavior="padding">
       <ScreenHeader title={title} />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
         keyboardShouldPersistTaps="handled"
       >
-        <FieldCard label="Name" error={errors.name?.message}>
-          <TextInput
-            value={values.name}
-            onChangeText={(name) => set('name', name)}
-            placeholder="e.g. MTN MoMo"
-            placeholderTextColor={lightColors.onSurfaceVariant}
-            maxLength={40}
-            autoFocus={!editing}
-            accessibilityLabel="Wallet name"
-            style={styles.input}
-          />
-        </FieldCard>
+        <TextField
+          label="Name"
+          value={values.name}
+          onChangeText={(name) => set('name', name)}
+          placeholder="e.g. MTN MoMo"
+          maxLength={40}
+          autoFocus={!editing}
+          error={errors.name?.message}
+        />
 
         <FieldCard label="Type">
-          <View style={styles.chips}>
+          <ChipGroup>
             {WALLET_TYPES.map((type) => (
               <Chip
                 key={type}
+                label={WALLET_TYPE_META[type].label}
                 icon={WALLET_TYPE_META[type].icon}
+                tone="muted"
                 selected={values.type === type}
-                showSelectedCheck={false}
-                style={values.type === type ? styles.chipSelected : styles.chip}
                 onPress={() => {
                   set('type', type);
                   set('color', WALLET_TYPE_META[type].color);
                 }}
-              >
-                {WALLET_TYPE_META[type].label}
-              </Chip>
+              />
             ))}
-          </View>
+          </ChipGroup>
         </FieldCard>
 
-        <FieldCard label="Provider (optional)" error={errors.provider?.message}>
-          <TextInput
-            value={values.provider ?? ''}
-            onChangeText={(provider) => set('provider', provider.trim() ? provider : null)}
-            placeholder="e.g. MTN, Airtel, Stanbic"
-            placeholderTextColor={lightColors.onSurfaceVariant}
-            maxLength={40}
-            accessibilityLabel="Provider"
-            style={styles.input}
-          />
-        </FieldCard>
+        <TextField
+          label="Provider (optional)"
+          value={values.provider ?? ''}
+          onChangeText={(provider) => set('provider', provider.trim() ? provider : null)}
+          placeholder="e.g. MTN, Airtel, Stanbic"
+          maxLength={40}
+          error={errors.provider?.message}
+        />
 
-        <FieldCard
+        <AmountField
           label={editing ? 'Opening balance' : 'Current balance'}
+          value={values.openingBalance}
+          onChange={(amount) => set('openingBalance', amount)}
           error={errors.openingBalance?.message}
-        >
-          <AmountInput
-            value={values.openingBalance}
-            onChange={(amount) => set('openingBalance', amount)}
-            accessibilityLabel={editing ? 'Opening balance' : 'Current balance'}
-          />
-        </FieldCard>
+        />
 
         <FieldCard label="Colour">
-          <View style={styles.chips}>
-            {COLORS.map((color) => (
-              <Pressable
-                key={color}
-                onPress={() => set('color', color)}
-                accessibilityRole="radio"
-                accessibilityLabel={color}
-                accessibilityState={{ selected: values.color === color }}
-                style={[styles.swatch, { backgroundColor: CATEGORY_COLORS[color] }]}
-              >
-                {values.color === color ? (
-                  <Icon source="check" size={18} color={lightColors.onPrimary} />
-                ) : null}
-              </Pressable>
-            ))}
+          <View style={styles.swatches}>
+            {COLORS.map((color) => {
+              const selected = values.color === color;
+              return (
+                <PressableScale
+                  key={color}
+                  onPress={() => set('color', color)}
+                  scaleTo={0.88}
+                  accessibilityRole="radio"
+                  accessibilityLabel={color}
+                  accessibilityState={{ selected }}
+                  style={[
+                    styles.swatch,
+                    { backgroundColor: CATEGORY_COLORS[color] },
+                    selected && {
+                      boxShadow: `0 0 0 3px #FFFFFF, 0 0 0 5px ${CATEGORY_COLORS[color]}`,
+                    },
+                  ]}
+                >
+                  {selected ? <Icon name="check" weight="bold" size={16} color="#FFFFFF" /> : null}
+                </PressableScale>
+              );
+            })}
           </View>
         </FieldCard>
 
-        <Button
-          mode="contained"
-          onPress={handleSubmit(onSubmit)}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          style={styles.save}
-          contentStyle={styles.saveContent}
-        >
-          Save
-        </Button>
+        <Button label="Save" onPress={handleSubmit(onSubmit)} loading={isSubmitting} block />
         {footer}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
-  content: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  input: {
-    fontFamily: fontFamily.medium,
-    fontSize: 16,
-    color: lightColors.onSurface,
-    padding: 0,
-  },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  // Flat chips on the white card: grey when off, light blue when selected.
-  chip: { backgroundColor: lightColors.background },
-  chipSelected: { backgroundColor: lightColors.primaryContainer },
+  content: { paddingHorizontal: spacing.gutter, gap: spacing.md },
+  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, paddingVertical: 4 },
   swatch: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  save: { borderRadius: radius.pill, marginTop: spacing.sm },
-  saveContent: { height: 52 },
 });

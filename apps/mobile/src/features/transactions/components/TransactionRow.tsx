@@ -1,12 +1,13 @@
 import { formatAmount, formatMoney } from '@meledger/shared';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
-import { type IconName, IconTile } from '@/components/ui/IconTile';
+import { IconTile } from '@/components/ui/IconTile';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Text } from '@/components/ui/Text';
 import type { Category, Tag, Transaction, Wallet } from '@/db/schema';
-import { lightColors, paletteColor, radius, spacing } from '@/theme/tokens';
+import { lightColors, paletteColor, radius, shadow, spacing } from '@/theme/tokens';
 
 import { TagChip } from './TagChip';
 
@@ -58,41 +59,41 @@ export function TransactionRow({
     .join(', ');
 
   return (
-    <Pressable
+    <PressableScale
       onPress={() => router.push({ pathname: '/transaction/[id]', params: { id: tx.id } })}
+      scaleTo={0.98}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
       accessibilityHint="Opens the entry to edit"
-      android_ripple={{ color: lightColors.primaryContainer }}
       style={styles.row}
     >
       {transfer ? (
-        <IconTile icon="swap-horizontal" color="slate" />
+        <IconTile icon="transfer" color="slate" />
       ) : (
-        <IconTile icon={category?.icon ?? 'shape-outline'} color={category?.color ?? 'slate'} />
+        <IconTile icon={category?.icon ?? 'category'} color={category?.color ?? 'slate'} />
       )}
       <View style={styles.middle}>
-        <Text variant="titleSmall" numberOfLines={1} style={styles.title}>
+        <Text variant="subtitle" numberOfLines={1}>
           {title}
         </Text>
         <View style={styles.chips}>
           <View style={styles.walletChip}>
             <Icon
-              name={(wallet?.icon ?? 'wallet-outline') as IconName}
-              size={12}
+              name={wallet?.icon ?? 'wallet'}
+              size={13}
               color={paletteColor(wallet?.color ?? 'slate')}
             />
-            <Text variant="labelSmall" style={styles.muted} numberOfLines={1}>
+            <Text variant="small" tone="muted" numberOfLines={1}>
               {walletLabel}
             </Text>
           </View>
           {fee ? (
-            <Text variant="labelSmall" style={styles.muted} numberOfLines={1}>
+            <Text variant="small" tone="muted" numberOfLines={1}>
               {fee}
             </Text>
           ) : null}
           {tx.note && !transfer && category ? (
-            <Text variant="labelSmall" style={styles.muted} numberOfLines={1}>
+            <Text variant="small" tone="muted" numberOfLines={1}>
               {category.name}
             </Text>
           ) : null}
@@ -102,16 +103,16 @@ export function TransactionRow({
         </View>
       </View>
       <View style={styles.right}>
-        <Text variant="titleSmall" style={[styles.amount, { color: amountColor }]}>
+        <Text variant="bodyStrong" color={amountColor} style={styles.tabular}>
           {amountText}
         </Text>
         {balanceAfter !== undefined ? (
-          <Text variant="labelSmall" style={styles.muted}>
+          <Text variant="small" tone="muted" style={styles.tabular}>
             {formatAmount(balanceAfter, 'UGX')}
           </Text>
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -119,17 +120,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
+    gap: spacing.md + 2,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
     backgroundColor: lightColors.surface,
-    borderRadius: radius.card,
-    overflow: 'hidden',
+    borderRadius: radius.card - 4,
+    boxShadow: shadow.card,
   },
   middle: { flex: 1, gap: spacing.xs },
-  title: { fontFamily: 'Inter_600SemiBold', fontSize: 15 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs + 2 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   walletChip: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: 180 },
-  muted: { color: lightColors.onSurfaceVariant },
   right: { alignItems: 'flex-end', gap: 2 },
-  amount: { fontFamily: 'Inter_600SemiBold' },
+  tabular: { fontVariant: ['tabular-nums'] },
 });

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
-/** Flat white card, radius 20, no border: it reads against the grey page background. */
-export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+/** White card, radius 24, no border: a very soft shadow lifts it off the grey page. */
+export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: lightColors.surface,
     borderRadius: radius.card,
-    padding: spacing.lg,
+    padding: spacing.xl,
+    boxShadow: shadow.card,
   },
 });

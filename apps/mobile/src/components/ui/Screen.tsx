@@ -1,18 +1,21 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TAB_BAR_HEIGHT } from '@/components/navigation/TabBar';
 import { lightColors, spacing } from '@/theme/tokens';
 
+import { Text } from './Text';
+
 interface ScreenProps {
   title: string;
+  /** Trailing header content (e.g. an IconButton). */
+  right?: ReactNode;
   children?: ReactNode;
 }
 
-/** Tab screen shell: background, screen padding 16, and a 20/600 title under the status bar. */
-export function Screen({ title, children }: ScreenProps) {
+/** Tab screen shell: grey page, large title under the status bar, section rhythm. */
+export function Screen({ title, right, children }: ScreenProps) {
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
@@ -26,9 +29,12 @@ export function Screen({ title, children }: ScreenProps) {
         },
       ]}
     >
-      <Text variant="titleLarge" accessibilityRole="header">
-        {title}
-      </Text>
+      <View style={styles.header}>
+        <Text variant="headline" accessibilityRole="header" style={styles.flex}>
+          {title}
+        </Text>
+        {right}
+      </View>
       {children}
     </ScrollView>
   );
@@ -36,5 +42,7 @@ export function Screen({ title, children }: ScreenProps) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
-  content: { padding: spacing.lg, gap: spacing.lg },
+  content: { paddingHorizontal: spacing.gutter, gap: spacing.section },
+  header: { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
+  flex: { flex: 1 },
 });

@@ -1,16 +1,17 @@
 import { formatMoney } from '@meledger/shared';
-import { Link, router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { IconButton, Text } from 'react-native-paper';
+import { router } from 'expo-router';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconTile } from '@/components/ui/IconTile';
+import { IconButton } from '@/components/ui/IconButton';
+import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { Text } from '@/components/ui/Text';
 import type { Wallet } from '@/db/schema';
 import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData';
 import { mainWalletId, WALLET_TYPE_META } from '@/features/wallets/logic';
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
 export default function WalletsScreen() {
   const insets = useSafeAreaInsets();
@@ -21,25 +22,23 @@ export default function WalletsScreen() {
   const mainId = mainWalletId(data.wallets);
   const active = data.wallets.filter((w) => !w.archived);
   const archived = data.wallets.filter((w) => w.archived);
+  const total = active.reduce((sum, w) => sum + (ledger.balances.get(w.id) ?? 0), 0);
 
   const row = (wallet: Wallet) => (
-    <Pressable
+    <ListRow
       key={wallet.id}
+      title={wallet.name}
+      subtitle={[
+        wallet.id === mainId ? 'Main wallet' : WALLET_TYPE_META[wallet.type].label,
+        wallet.provider,
+      ]
+        .filter(Boolean)
+        .join(' · ')}
+      icon={wallet.icon}
+      iconColor={wallet.color}
+      value={formatMoney(ledger.balances.get(wallet.id) ?? 0, 'UGX')}
       onPress={() => router.push({ pathname: '/wallets/[id]', params: { id: wallet.id } })}
-      accessibilityRole="button"
-      android_ripple={{ color: lightColors.primaryContainer }}
-      style={styles.row}
-    >
-      <IconTile icon={wallet.icon} color={wallet.color} />
-      <View style={styles.flex}>
-        <Text variant="titleMedium">{wallet.name}</Text>
-        <Text variant="bodySmall" style={styles.muted}>
-          {wallet.id === mainId ? 'Main wallet' : WALLET_TYPE_META[wallet.type].label}
-          {wallet.provider ? ` · ${wallet.provider}` : ''}
-        </Text>
-      </View>
-      <Text variant="titleSmall">{formatMoney(ledger.balances.get(wallet.id) ?? 0, 'UGX')}</Text>
-    </Pressable>
+    />
   );
 
   return (
@@ -47,27 +46,25 @@ export default function WalletsScreen() {
       <ScreenHeader
         title="Wallets"
         right={
-          <Link href="/wallets/new" asChild>
-            <IconButton
-              icon="plus"
-              mode="contained"
-              containerColor={lightColors.insightBar}
-              iconColor={lightColors.onPrimary}
-              accessibilityLabel="Add wallet"
-            />
-          </Link>
+          <IconButton
+            icon="plus"
+            label="Add wallet"
+            variant="dark"
+            onPress={() => router.push('/wallets/new')}
+          />
         }
       />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
-        <View style={styles.group}>{active.map(row)}</View>
-        {archived.length > 0 ? (
-          <>
-            <Text variant="labelMedium" style={[styles.muted, styles.heading]}>
-              Archived
-            </Text>
-            <View style={styles.group}>{archived.map(row)}</View>
-          </>
-        ) : null}
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
+      >
+        <View style={styles.total} accessible>
+          <Text variant="caption" tone="muted">
+            Total in active wallets
+          </Text>
+          <Text variant="amount">{formatMoney(total, 'UGX')}</Text>
+        </View>
+        <ListGroup title="Active">{active.map(row)}</ListGroup>
+        {archived.length > 0 ? <ListGroup title="Archived">{archived.map(row)}</ListGroup> : null}
       </ScrollView>
     </View>
   );
@@ -75,20 +72,12 @@ export default function WalletsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
-  content: { padding: spacing.lg, gap: spacing.sm },
-  group: {
-    backgroundColor: lightColors.surface,
+  content: { paddingHorizontal: spacing.gutter, gap: spacing.xxl },
+  total: {
+    gap: spacing.xs,
+    padding: spacing.xl,
     borderRadius: radius.card,
-    overflow: 'hidden',
+    backgroundColor: lightColors.surface,
+    boxShadow: shadow.card,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  flex: { flex: 1 },
-  muted: { color: lightColors.onSurfaceVariant },
-  heading: { marginTop: spacing.md },
 });

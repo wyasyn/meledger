@@ -1,11 +1,7 @@
-import type { MaterialCommunityIcons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
-import { paletteColor, radius, tint } from '@/theme/tokens';
-
-export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+import { paletteColor, tint } from '@/theme/tokens';
 
 interface IconTileProps {
   icon: string;
@@ -15,7 +11,7 @@ interface IconTileProps {
   round?: boolean;
 }
 
-/** 44x44 rounded square with a tinted background and the icon in full colour. */
+/** Rounded square (or circle) with a tinted background and the icon in full colour. */
 export function IconTile({ icon, color, size = 44, round = false }: IconTileProps) {
   const hex = paletteColor(color);
   return (
@@ -25,12 +21,12 @@ export function IconTile({ icon, color, size = 44, round = false }: IconTileProp
         {
           width: size,
           height: size,
-          borderRadius: round ? size / 2 : radius.small,
+          borderRadius: round ? size / 2 : Math.round(size * 0.32),
           backgroundColor: tint(hex),
         },
       ]}
     >
-      <Icon name={icon as IconName} size={size * 0.5} color={hex} />
+      <Icon name={icon} size={size * 0.5} color={hex} />
     </View>
   );
 }

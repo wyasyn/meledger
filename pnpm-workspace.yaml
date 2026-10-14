@@ -2,5 +2,9 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  '@shopify/react-native-skia': true
   esbuild: true
   unrs-resolver: false
+minimumReleaseAgeExclude:
+  - expo-constants@57.0.22
+  - expo-notifications@57.0.23

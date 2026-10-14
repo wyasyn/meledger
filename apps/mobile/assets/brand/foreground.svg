@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!--
+    The living orb: a glossy sphere with a light swirl inside, a rim highlight and one
+    sound-wave ripple. Everything that matters sits inside the adaptive-icon safe zone
+    (a circle of radius 338 around the centre).
+  -->
+  <defs>
+    <radialGradient id="body" cx="40%" cy="34%" r="72%">
+      <stop offset="0" stop-color="#E6F3FF"/>
+      <stop offset="0.18" stop-color="#9FD0FF"/>
+      <stop offset="0.48" stop-color="#3D8DFF"/>
+      <stop offset="0.78" stop-color="#1450D8"/>
+      <stop offset="1" stop-color="#0A2C86"/>
+    </radialGradient>
+    <linearGradient id="swirlA" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#8FF1FF" stop-opacity="0.2"/>
+      <stop offset="0.5" stop-color="#C9F7FF" stop-opacity="1"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="swirlB" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#6FB6FF" stop-opacity="0"/>
+      <stop offset="0.6" stop-color="#FFFFFF" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#6FB6FF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#9FD0FF" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="orb"><circle cx="512" cy="512" r="236"/></clipPath>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="38"/>
+    </filter>
+    <filter id="spec" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <!-- Outer glow -->
+  <circle cx="512" cy="530" r="250" fill="#5AA8FF" opacity="0.55" filter="url(#glow)"/>
+
+  <!-- Sound-wave ripple -->
+  <circle cx="512" cy="512" r="318" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="10"/>
+  <path d="M 512 194 A 318 318 0 0 1 830 512" fill="none" stroke="#FFFFFF" stroke-opacity="0.75"
+        stroke-width="10" stroke-linecap="round"/>
+
+  <g transform="translate(512 512) scale(1.1) translate(-512 -512)">
+  <!-- Body -->
+  <circle cx="512" cy="512" r="236" fill="url(#body)"/>
+
+  <!-- Inner energy, clipped to the sphere: a rising S-wave (voice) with a cyan backlight -->
+  <g clip-path="url(#orb)">
+    <ellipse cx="380" cy="700" rx="220" ry="150" fill="#3FE0FF" opacity="0.45" filter="url(#glow)"/>
+    <ellipse cx="690" cy="330" rx="200" ry="120" fill="#0A2C86" opacity="0.55" filter="url(#glow)"/>
+    <path d="M 250 690 C 360 690, 420 560, 512 520 S 650 360, 790 350"
+          fill="none" stroke="#0E3AA8" stroke-opacity="0.55" stroke-width="90" stroke-linecap="round" filter="url(#soft)"/>
+    <path d="M 250 660 C 360 660, 420 540, 512 500 S 650 340, 790 330"
+          fill="none" stroke="url(#swirlA)" stroke-width="40" stroke-linecap="round" filter="url(#soft)"/>
+    <path d="M 270 740 C 380 740, 450 640, 540 610 S 680 500, 800 480"
+          fill="none" stroke="url(#swirlB)" stroke-width="18" stroke-linecap="round" filter="url(#soft)" opacity="0.75"/>
+  </g>
+
+  <!-- Rim light and specular highlight -->
+  <circle cx="512" cy="512" r="232" fill="none" stroke="url(#rim)" stroke-width="7"/>
+  <ellipse cx="438" cy="392" rx="64" ry="34" transform="rotate(-28 438 392)" fill="#FFFFFF" opacity="0.85" filter="url(#spec)"/>
+  <circle cx="610" cy="352" r="9" fill="#FFFFFF" opacity="0.7"/>
+  </g>
+</svg>

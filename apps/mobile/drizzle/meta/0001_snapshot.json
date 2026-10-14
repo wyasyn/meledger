@@ -938,9 +938,7 @@
       "indexes": {
         "transaction_tags_transaction_idx": {
           "name": "transaction_tags_transaction_idx",
-          "columns": [
-            "transaction_id"
-          ],
+          "columns": ["transaction_id"],
           "isUnique": false
         }
       },
@@ -1108,23 +1106,17 @@
       "indexes": {
         "transactions_occurred_at_idx": {
           "name": "transactions_occurred_at_idx",
-          "columns": [
-            "occurred_at"
-          ],
+          "columns": ["occurred_at"],
           "isUnique": false
         },
         "transactions_wallet_idx": {
           "name": "transactions_wallet_idx",
-          "columns": [
-            "wallet_id"
-          ],
+          "columns": ["wallet_id"],
           "isUnique": false
         },
         "transactions_category_idx": {
           "name": "transactions_category_idx",
-          "columns": [
-            "category_id"
-          ],
+          "columns": ["category_id"],
           "isUnique": false
         }
       },

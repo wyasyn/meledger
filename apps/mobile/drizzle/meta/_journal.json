@@ -15,6 +15,13 @@
       "when": 1791998525427,
       "tag": "0001_recolor_violet_to_lime",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792000444053,
+      "tag": "0002_icons_to_keys",
+      "breakpoints": true
     }
   ]
 }

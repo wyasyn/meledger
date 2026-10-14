@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
 
 import { Icon } from '@/components/ui/Icon';
+import { Text } from '@/components/ui/Text';
 import type { Tag } from '@/db/schema';
 import { paletteColor, radius, spacing, tint } from '@/theme/tokens';
 
@@ -25,7 +25,7 @@ export function TagChip({ tag, onPress, onRemove, small = false }: TagChipProps)
       accessibilityLabel={onRemove ? `Remove tag ${tag.name}` : tag.name}
       style={[styles.chip, small && styles.small, { backgroundColor: tint(color, 0.12) }]}
     >
-      <Text variant={small ? 'labelSmall' : 'labelLarge'} style={{ color }}>
+      <Text variant={small ? 'micro' : 'label'} color={color}>
         {tag.name}
       </Text>
       {onRemove ? <Icon name="close" size={14} color={color} /> : null}

@@ -24,7 +24,7 @@ export default function EditTransactionScreen() {
     return (
       <>
         <ScreenHeader title="Edit entry" />
-        <EmptyState icon="file-question-outline" title="This entry no longer exists" />
+        <EmptyState icon="empty" title="This entry no longer exists" />
       </>
     );
   }

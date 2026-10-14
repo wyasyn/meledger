@@ -1,14 +1,17 @@
-import { Text } from 'react-native-paper';
-
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
-import { lightColors } from '@/theme/tokens';
 
 export default function ReportScreen() {
   return (
     <Screen title="Report">
-      <Text variant="bodyMedium" style={{ color: lightColors.onSurfaceVariant }}>
-        Coming in milestone 4.
-      </Text>
+      <Card>
+        <EmptyState
+          icon="report"
+          title="Your spending, explained"
+          body="Charts, category breakdowns and month-on-month changes arrive in milestone 4."
+        />
+      </Card>
     </Screen>
   );
 }

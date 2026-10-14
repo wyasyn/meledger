@@ -22,7 +22,10 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-sqlite',
-    '@react-native-community/datetimepicker',
+    // Microphone and speech recognition. No recording options are ever enabled: audio is never stored.
+    'expo-speech-recognition',
+    'expo-notifications',
+    'expo-local-authentication',
     [
       'expo-splash-screen',
       {

@@ -1,12 +1,11 @@
-import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator } from 'react-native-paper';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { lightColors } from '@/theme/tokens';
 
 export function LoadingScreen() {
   return (
     <View style={styles.root}>
-      <ActivityIndicator />
+      <ActivityIndicator color={lightColors.primary} />
     </View>
   );
 }

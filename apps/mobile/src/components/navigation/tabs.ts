@@ -1,18 +1,15 @@
-import type { MaterialCommunityIcons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
-
-type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+import type { IconName } from '@/components/ui/Icon';
 
 export interface TabSpec {
   label: string;
+  /** Regular weight when idle, filled when the tab is active. */
   icon: IconName;
-  activeIcon: IconName;
 }
 
 /** Bottom bar items keyed by route name. The mic sits in its own circle right of the pill. */
 export const TABS: Record<string, TabSpec> = {
-  index: { label: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  report: { label: 'Report', icon: 'chart-box-outline', activeIcon: 'chart-box' },
-  plan: { label: 'Plan', icon: 'clipboard-text-outline', activeIcon: 'clipboard-text' },
-  settings: { label: 'Settings', icon: 'cog-outline', activeIcon: 'cog' },
+  index: { label: 'Home', icon: 'home' },
+  report: { label: 'Report', icon: 'report' },
+  plan: { label: 'Plan', icon: 'plan' },
+  settings: { label: 'Settings', icon: 'settings' },
 };

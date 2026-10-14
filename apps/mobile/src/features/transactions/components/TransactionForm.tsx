@@ -1,29 +1,33 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  formatAmount,
   type TransactionInput,
   TransactionInputSchema,
   type TransactionType,
 } from '@meledger/shared';
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { format, isToday, isYesterday } from 'date-fns';
-import { Link } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import { useMemo, useRef } from 'react';
 import { type Path, type PathValue, useForm, useWatch } from 'react-hook-form';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { Button, HelperText, Menu, Text } from 'react-native-paper';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from '@/components/ui/Icon';
+import { AmountField } from '@/components/ui/AmountField';
+import { Button } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
+import { DatePickerSheet } from '@/components/ui/DatePickerSheet';
 import { FieldCard } from '@/components/ui/FieldCard';
+import { Icon } from '@/components/ui/Icon';
+import { IconButton } from '@/components/ui/IconButton';
 import { IconTile } from '@/components/ui/IconTile';
+import { Menu } from '@/components/ui/Menu';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import type { SheetRef } from '@/components/ui/Sheet';
+import { Text } from '@/components/ui/Text';
+import { TextField } from '@/components/ui/TextField';
 import { mainWalletId } from '@/features/wallets/logic';
-import { fontFamily } from '@/theme/fonts';
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
-import { parseAmountInput } from '../logic';
 import type { LedgerData } from '../useLedgerData';
 import { CategoryPickerSheet } from './CategoryPickerSheet';
 import { TagChip } from './TagChip';
@@ -35,6 +39,12 @@ const TYPE_LABELS: Record<TransactionType, string> = {
   income: 'Income',
   transfer: 'Transfer',
 };
+
+const TYPE_ITEMS = (Object.keys(TYPE_LABELS) as TransactionType[]).map((value) => ({
+  value,
+  label: TYPE_LABELS[value],
+  icon: value === 'transfer' ? ('transfer' as const) : value,
+}));
 
 interface TransactionFormProps {
   title: string;
@@ -60,7 +70,6 @@ export function TransactionForm({
   const values = useWatch({ control }) as TransactionInput;
   const { errors, isSubmitting } = formState;
 
-  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const fromSheet = useRef<SheetRef>(null);
   const toSheet = useRef<SheetRef>(null);
   const categorySheet = useRef<SheetRef>(null);
@@ -77,7 +86,6 @@ export function TransactionForm({
     setValue(key, value, { shouldDirty: true, shouldValidate: formState.isSubmitted });
 
   const changeType = (type: TransactionType) => {
-    setTypeMenuOpen(false);
     set('type', type);
     if (type === 'transfer') {
       if (!values.toWalletId || values.toWalletId === values.walletId) {
@@ -88,59 +96,43 @@ export function TransactionForm({
     }
   };
 
-  const openDatePicker = () => {
-    DateTimePickerAndroid.open({
-      value: values.occurredAt,
-      mode: 'date',
-      maximumDate: new Date(),
-      onValueChange: (_event, picked) => {
-        // Keep the original time of day so entries on the same day stay in order.
-        const next = new Date(values.occurredAt);
-        next.setFullYear(picked.getFullYear(), picked.getMonth(), picked.getDate());
-        set('occurredAt', next);
-      },
-    });
+  const dateSheet = useRef<SheetRef>(null);
+  const pickDate = (picked: Date) => {
+    // Keep the original time of day so entries on the same day stay in order.
+    const next = new Date(values.occurredAt);
+    next.setFullYear(picked.getFullYear(), picked.getMonth(), picked.getDate());
+    set('occurredAt', next);
+    dateSheet.current?.dismiss();
   };
 
   const submit = handleSubmit(onSubmit);
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root} behavior="padding">
       <ScreenHeader
         title={title}
         right={
           <Menu
-            visible={typeMenuOpen}
-            onDismiss={() => setTypeMenuOpen(false)}
-            anchorPosition="bottom"
-            anchor={
-              <Pressable
-                onPress={() => setTypeMenuOpen(true)}
+            items={TYPE_ITEMS}
+            selected={values.type}
+            onSelect={changeType}
+            accessibilityLabel="Entry type"
+            anchor={(open) => (
+              <PressableScale
+                onPress={open}
                 accessibilityRole="button"
                 accessibilityLabel={`Entry type: ${TYPE_LABELS[values.type]}. Change`}
                 style={styles.typePill}
               >
-                <Text variant="labelLarge">{TYPE_LABELS[values.type]}</Text>
-                <Icon name="chevron-down" size={18} color={lightColors.onSurface} />
-              </Pressable>
-            }
-          >
-            {(Object.keys(TYPE_LABELS) as TransactionType[]).map((type) => (
-              <Menu.Item
-                key={type}
-                title={TYPE_LABELS[type]}
-                onPress={() => changeType(type)}
-                leadingIcon={type === values.type ? 'check' : undefined}
-              />
-            ))}
-          </Menu>
+                <Text variant="label">{TYPE_LABELS[values.type]}</Text>
+                <Icon name="chevron-down" weight="bold" size={14} color={lightColors.onSurface} />
+              </PressableScale>
+            )}
+          />
         }
       />
 
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <AccountCard
           label={transfer ? 'From' : 'Account'}
           wallet={walletsById.get(values.walletId)}
@@ -159,24 +151,23 @@ export function TransactionForm({
           />
         ) : null}
 
-        <FieldCard label="Amount" error={errors.amount?.message}>
-          <AmountInput
-            value={values.amount}
-            onChange={(amount) => set('amount', amount)}
-            large
-            autoFocus={!onDelete}
-            accessibilityLabel="Amount"
-          />
-        </FieldCard>
+        <AmountField
+          label="Amount"
+          value={values.amount}
+          onChange={(amount) => set('amount', amount)}
+          size="xl"
+          autoFocus={!onDelete}
+          error={errors.amount?.message}
+        />
 
         {transfer ? (
-          <FieldCard label="Fee (optional)" error={errors.feeAmount?.message}>
-            <AmountInput
-              value={values.feeAmount}
-              onChange={(fee) => set('feeAmount', fee)}
-              accessibilityLabel="Transfer fee"
-            />
-          </FieldCard>
+          <AmountField
+            label="Fee (optional)"
+            value={values.feeAmount}
+            onChange={(fee) => set('feeAmount', fee)}
+            error={errors.feeAmount?.message}
+            accessibilityLabel="Transfer fee"
+          />
         ) : (
           <FieldCard
             label="Category"
@@ -185,15 +176,15 @@ export function TransactionForm({
             accessibilityLabel={`Category: ${category?.name ?? 'none'}. Change`}
           >
             <View style={styles.row}>
-              {category ? (
-                <IconTile icon={category.icon} color={category.color} size={36} />
-              ) : (
-                <IconTile icon="shape-outline" color={lightColors.onSurfaceVariant} size={36} />
-              )}
-              <Text variant="titleMedium" style={styles.flex}>
+              <IconTile
+                icon={category?.icon ?? 'category'}
+                color={category?.color ?? lightColors.onSurfaceVariant}
+                size={40}
+              />
+              <Text variant="subtitle" tone={category ? 'default' : 'muted'} style={styles.flex}>
                 {category?.name ?? 'Choose a category'}
               </Text>
-              <Icon name="chevron-right" size={22} color={lightColors.onSurfaceVariant} />
+              <Icon name="chevron-right" size={18} color={lightColors.onSurfaceVariant} />
             </View>
           </FieldCard>
         )}
@@ -215,72 +206,60 @@ export function TransactionForm({
                 />
               ) : null;
             })}
-            <Pressable
+            <Chip
+              label="Add tag"
+              icon="plus"
+              tone="muted"
               onPress={() => tagSheet.current?.present()}
-              accessibilityRole="button"
-              accessibilityLabel="Add tag"
-              style={styles.addTag}
-            >
-              <Icon name="plus" size={16} color={lightColors.onSurfaceVariant} />
-              <Text variant="labelLarge" style={styles.muted}>
-                Add tag
-              </Text>
-            </Pressable>
+            />
           </View>
         </FieldCard>
 
-        <FieldCard label="Date">
-          <Pressable
-            onPress={openDatePicker}
-            accessibilityRole="button"
-            accessibilityLabel={`Date: ${format(values.occurredAt, 'd MMMM yyyy')}. Change`}
-            style={styles.dateBox}
-          >
-            <Text variant="titleMedium" style={styles.flex}>
+        <FieldCard
+          label="Date"
+          onPress={() => dateSheet.current?.present()}
+          accessibilityLabel={`Date: ${format(values.occurredAt, 'd MMMM yyyy')}. Change`}
+        >
+          <View style={styles.row}>
+            <Text variant="subtitle" style={styles.flex}>
               {dateLabel(values.occurredAt)}
             </Text>
-            <Icon name="calendar-month-outline" size={22} color={lightColors.onSurface} />
-          </Pressable>
+            <Icon name="calendar" size={22} color={lightColors.onSurface} />
+          </View>
         </FieldCard>
 
-        <FieldCard label="Note" error={errors.note?.message}>
-          <TextInput
-            value={values.note}
-            onChangeText={(note) => set('note', note)}
-            placeholder="What was it for?"
-            placeholderTextColor={lightColors.onSurfaceVariant}
-            maxLength={200}
-            multiline
-            accessibilityLabel="Note"
-            style={styles.note}
-          />
-        </FieldCard>
-
-        <View style={styles.actions}>
-          {onDelete ? (
-            <Button
-              mode="text"
-              icon="delete-outline"
-              textColor={lightColors.expense}
-              onPress={onDelete}
-              disabled={isSubmitting}
-            >
-              Delete
-            </Button>
-          ) : null}
-          <Button
-            mode="contained"
-            onPress={submit}
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            style={styles.save}
-            contentStyle={styles.saveContent}
-          >
-            Save
-          </Button>
-        </View>
+        <TextField
+          label="Note"
+          value={values.note}
+          onChangeText={(note) => set('note', note)}
+          placeholder="What was it for?"
+          maxLength={200}
+          multiline
+          error={errors.note?.message}
+        />
       </ScrollView>
 
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+        {onDelete ? (
+          <IconButton
+            icon="trash"
+            label="Delete entry"
+            color={lightColors.expense}
+            variant="surface"
+            size={54}
+            onPress={onDelete}
+            disabled={isSubmitting}
+          />
+        ) : null}
+        <Button label="Save" onPress={submit} loading={isSubmitting} style={styles.flex} />
+      </View>
+
+      <DatePickerSheet
+        ref={dateSheet}
+        value={values.occurredAt}
+        onChange={pickDate}
+        maxDate={new Date()}
+      />
       <WalletPickerSheet
         ref={fromSheet}
         title={transfer ? 'From wallet' : 'Account'}
@@ -322,15 +301,15 @@ export function TransactionForm({
           tagSheet.current?.dismiss();
         }}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 function dateLabel(date: Date): string {
-  const day = format(date, 'dd/MM/yyyy');
+  const day = format(date, 'd MMM yyyy');
   if (isToday(date)) return `Today, ${day}`;
   if (isYesterday(date)) return `Yesterday, ${day}`;
-  return day;
+  return format(date, 'EEEE, d MMM yyyy');
 }
 
 interface AccountCardProps {
@@ -345,135 +324,70 @@ interface AccountCardProps {
 /** "Account" row from the Add New inspiration: wallet tile, name, Change button. */
 function AccountCard({ label, wallet, isMain, onChange, error, emptyHint }: AccountCardProps) {
   return (
-    <FieldCard error={wallet ? error : undefined}>
+    <FieldCard error={error && !emptyHint ? error : undefined}>
       <View style={styles.row}>
         <IconTile
-          icon={wallet?.icon ?? 'wallet-outline'}
+          icon={wallet?.icon ?? 'wallet'}
           color={wallet?.color ?? lightColors.onSurfaceVariant}
           round
         />
         <View style={styles.flex}>
-          <Text variant="bodyMedium" style={styles.muted}>
+          <Text variant="caption" tone="muted">
             {label}
           </Text>
           {wallet ? (
-            <Text variant="titleMedium">
+            <Text variant="subtitle" numberOfLines={1}>
               {wallet.name}
-              {isMain ? <Text style={styles.muted}> (Main wallet)</Text> : null}
+              {isMain ? (
+                <Text variant="body" tone="muted">
+                  {' '}
+                  (Main wallet)
+                </Text>
+              ) : null}
             </Text>
           ) : (
-            <Text variant="titleMedium" style={styles.muted}>
+            <Text variant="subtitle" tone="muted">
               {emptyHint ?? 'Choose a wallet'}
             </Text>
           )}
         </View>
         {emptyHint ? (
-          <Link href="/wallets/new" asChild>
-            <Button mode="contained-tonal" compact>
-              Add wallet
-            </Button>
-          </Link>
+          <Button
+            label="Add wallet"
+            variant="secondary"
+            size="sm"
+            onPress={() => router.push('/wallets/new')}
+          />
         ) : (
-          <Button mode="contained-tonal" compact onPress={onChange}>
-            Change
-          </Button>
+          <Button label="Change" variant="secondary" size="sm" onPress={onChange} />
         )}
       </View>
-      {!wallet && error && !emptyHint ? (
-        <HelperText type="error" padding="none">
-          {error}
-        </HelperText>
-      ) : null}
     </FieldCard>
-  );
-}
-
-interface AmountInputProps {
-  value: number;
-  onChange: (value: number) => void;
-  large?: boolean;
-  autoFocus?: boolean;
-  accessibilityLabel: string;
-}
-
-/** Whole-shilling amount with live thousands separators and a grey "UGX" prefix. */
-export function AmountInput({
-  value,
-  onChange,
-  large = false,
-  autoFocus = false,
-  accessibilityLabel,
-}: AmountInputProps) {
-  return (
-    <View style={styles.amountRow}>
-      <Text variant={large ? 'headlineSmall' : 'titleMedium'} style={styles.muted}>
-        UGX
-      </Text>
-      <TextInput
-        value={value ? formatAmount(value, 'UGX') : ''}
-        onChangeText={(text) => onChange(parseAmountInput(text))}
-        keyboardType="number-pad"
-        placeholder="0"
-        placeholderTextColor={lightColors.outline}
-        autoFocus={autoFocus}
-        accessibilityLabel={accessibilityLabel}
-        style={[styles.amountInput, large ? styles.amountLarge : styles.amountSmall]}
-      />
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
-  content: { paddingHorizontal: spacing.lg, gap: spacing.md },
+  content: { paddingHorizontal: spacing.gutter, paddingBottom: spacing.xxl, gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   flex: { flex: 1 },
-  muted: { color: lightColors.onSurfaceVariant },
   typePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: lightColors.surface,
+    gap: spacing.xs + 2,
+    height: 40,
+    paddingHorizontal: spacing.lg,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    backgroundColor: lightColors.surface,
+    boxShadow: shadow.card,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  addTag: {
+  footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    borderRadius: radius.pill,
+    gap: spacing.md,
+    paddingHorizontal: spacing.gutter,
+    paddingTop: spacing.md,
     backgroundColor: lightColors.background,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
   },
-  dateBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: lightColors.background,
-    borderRadius: radius.small,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  note: {
-    fontFamily: fontFamily.regular,
-    fontSize: 16,
-    color: lightColors.onSurface,
-    padding: 0,
-    minHeight: 24,
-  },
-  amountRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  amountInput: { flex: 1, padding: 0, color: lightColors.onSurface },
-  amountLarge: { fontFamily: fontFamily.semibold, fontSize: 40, lineHeight: 48 },
-  amountSmall: { fontFamily: fontFamily.semibold, fontSize: 20, lineHeight: 28 },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  save: { flex: 1, borderRadius: radius.pill },
-  saveContent: { height: 52 },
 });

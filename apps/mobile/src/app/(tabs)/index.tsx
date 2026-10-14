@@ -3,15 +3,18 @@ import { subDays } from 'date-fns';
 import { router, useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useCallback, useMemo, useRef } from 'react';
-import { Pressable, SectionList, StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { SectionList, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TAB_BAR_HEIGHT } from '@/components/navigation/TabBar';
+import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import type { SheetRef } from '@/components/ui/Sheet';
+import { Text } from '@/components/ui/Text';
 import { BalanceHeader } from '@/features/home/components/BalanceHeader';
 import { InsightBar } from '@/features/home/components/InsightBar';
 import { MoneyCards } from '@/features/home/components/MoneyCards';
@@ -86,32 +89,42 @@ export default function HomeScreen() {
                 expense={view.totals.expense}
               />
               <InsightBar />
-              <View style={styles.listHeader}>
-                <Text variant="titleMedium">Transactions</Text>
-                <Pressable
-                  onPress={() => periodSheet.current?.present()}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Period: ${label}. Change`}
-                  style={styles.periodChip}
-                >
-                  <Text variant="labelMedium" style={styles.periodText}>
-                    {periodChipLabel(period, new Date())}
-                  </Text>
-                  <Icon name="chevron-down" size={16} color={lightColors.onPrimaryContainer} />
-                </Pressable>
+              <View style={styles.group}>
+                <SectionHeader
+                  title="Transactions"
+                  right={
+                    <PressableScale
+                      onPress={() => periodSheet.current?.present()}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Period: ${label}. Change`}
+                      style={styles.periodChip}
+                    >
+                      <Icon name="calendar" size={14} color={lightColors.onPrimaryContainer} />
+                      <Text variant="label" color={lightColors.onPrimaryContainer}>
+                        {periodChipLabel(period, new Date())}
+                      </Text>
+                      <Icon
+                        name="chevron-down"
+                        weight="bold"
+                        size={12}
+                        color={lightColors.onPrimaryContainer}
+                      />
+                    </PressableScale>
+                  }
+                />
+                <WalletStrip wallets={data.wallets} />
               </View>
-              <WalletStrip wallets={data.wallets} />
             </View>
           </>
         }
         renderSectionHeader={({ section }) => (
           <View style={styles.dayHeader}>
-            <Text variant="bodySmall" style={styles.muted}>
+            <Text variant="caption" tone="muted">
               {section.title}
             </Text>
-            <Text variant="bodySmall" style={styles.muted}>
+            <Text variant="caption" tone="muted">
               Total{' '}
-              <Text variant="labelLarge" style={styles.dayTotal}>
+              <Text variant="label" style={styles.tabular}>
                 {section.total > 0 ? '+' : ''}
                 {formatMoney(section.total)}
               </Text>
@@ -139,7 +152,7 @@ export default function HomeScreen() {
         }}
         ListEmptyComponent={
           <EmptyState
-            icon="notebook-outline"
+            icon="note"
             title={`No entries for ${label}`}
             body={
               walletId
@@ -147,9 +160,11 @@ export default function HomeScreen() {
                 : 'Log what you spend and earn to see it here.'
             }
             action={
-              <Button mode="contained" icon="plus" onPress={() => router.push('/transaction/new')}>
-                Add an entry
-              </Button>
+              <Button
+                label="Add an entry"
+                icon="plus"
+                onPress={() => router.push('/transaction/new')}
+              />
             }
           />
         }
@@ -170,39 +185,34 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
+  // Grey sheet that overlaps the blue header with rounded top corners.
   sheet: {
-    marginTop: -spacing.xxl,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    marginTop: -spacing.xxxl,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
     backgroundColor: lightColors.background,
-    padding: spacing.lg,
-    gap: spacing.lg,
+    paddingHorizontal: spacing.gutter,
+    paddingTop: spacing.xxl,
+    gap: spacing.section,
   },
-  listHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-  },
+  group: { gap: spacing.md },
   periodChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.xs + 2,
+    height: 34,
     backgroundColor: lightColors.primaryContainer,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
   },
-  periodText: { color: lightColors.onPrimaryContainer },
   dayHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.gutter + spacing.xs,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm + 2,
   },
-  dayTotal: { color: lightColors.onSurface },
-  muted: { color: lightColors.onSurfaceVariant },
-  item: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  tabular: { fontVariant: ['tabular-nums'] },
+  item: { paddingHorizontal: spacing.gutter, paddingBottom: spacing.sm + 2 },
 });

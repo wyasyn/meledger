@@ -1,62 +1,58 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
+import { Icon } from '@/components/ui/Icon';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { lightColors } from '@/theme/tokens';
 
 interface MicFabProps {
-  /** Tap: opens the voice sheet in tap-to-talk mode (milestone 3). */
+  /** Tap: opens the voice screen, listening. */
   onPress: () => void;
-  /** Press and hold: starts recording (milestone 3). */
+  /** Press and hold: opens the voice screen in hold-to-talk mode. */
   onLongPress: () => void;
-  /** Release after a hold: stops recording and parses (milestone 3). */
+  /** Release: ends hold-to-talk. */
   onPressOut?: () => void;
 }
 
 /** Diameter of the mic circle; the tab pill beside it matches this height. */
 export const MIC_FAB_SIZE = 64;
 
+/** Mic in its own circle next to the tab pill, styled like the pill and its tab items. */
 export function MicFab({ onPress, onLongPress, onPressOut }: MicFabProps) {
   return (
-    <View style={styles.circle}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Log by voice"
-        accessibilityHint="Tap to open voice entry, or press and hold to talk"
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          onPress();
-        }}
-        onLongPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          onLongPress();
-        }}
-        onPressOut={onPressOut}
-        delayLongPress={300}
-        android_ripple={{ color: 'rgba(255,255,255,0.3)', borderless: false }}
-        style={styles.fab}
-      >
-        <MaterialIcons name="mic" size={28} color={lightColors.surface} />
-      </Pressable>
-    </View>
+    <PressableScale
+      accessibilityRole="button"
+      accessibilityLabel="Log by voice"
+      accessibilityHint="Tap to talk, or press and hold to talk while holding"
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      onLongPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        onLongPress();
+      }}
+      onPressOut={onPressOut}
+      delayLongPress={300}
+      scaleTo={0.92}
+      style={styles.circle}
+    >
+      <Icon name="mic" size={26} color={lightColors.onSurface} />
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
+  // Same surface, outline and shadow as the tab pill.
   circle: {
     width: MIC_FAB_SIZE,
     height: MIC_FAB_SIZE,
     borderRadius: MIC_FAB_SIZE / 2,
-    // Near-black like the Budget Buddy mic, at the user's request.
-    backgroundColor: lightColors.onSurface,
-    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-  },
-  // Clips the ripple to the circle; the shadow stays on the unclipped parent.
-  fab: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: MIC_FAB_SIZE / 2,
-    overflow: 'hidden',
+    backgroundColor: lightColors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: lightColors.outline,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
   },
 });

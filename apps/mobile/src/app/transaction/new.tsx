@@ -1,5 +1,5 @@
 import type { TransactionInput } from '@meledger/shared';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
@@ -16,6 +16,8 @@ export default function NewTransactionScreen() {
 }
 
 function NewTransactionForm({ data }: { data: LedgerData }) {
+  // The voice screen hands over what was said as the note until speech parsing lands.
+  const { note } = useLocalSearchParams<{ note?: string }>();
   const [initial] = useState<TransactionInput>(() => ({
     type: 'expense',
     amount: 0,
@@ -23,7 +25,7 @@ function NewTransactionForm({ data }: { data: LedgerData }) {
     toWalletId: null,
     categoryId: null,
     occurredAt: new Date(),
-    note: '',
+    note: note?.slice(0, 200) ?? '',
     feeAmount: 0,
     tagIds: [],
   }));

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Themed (Android 13+) icon: flat orb with its swirl cut out, plus the ripple. -->
+  <defs>
+    <mask id="swirl" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#FFFFFF"/>
+      <path d="M 250 660 C 360 660, 420 540, 512 500 S 650 340, 790 330"
+            fill="none" stroke="#000000" stroke-width="44" stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <circle cx="512" cy="512" r="236" fill="#FFFFFF" mask="url(#swirl)" transform="translate(512 512) scale(1.1) translate(-512 -512)"/>
+  <path d="M 512 194 A 318 318 0 0 1 830 512" fill="none" stroke="#FFFFFF"
+        stroke-width="14" stroke-linecap="round"/>
+</svg>

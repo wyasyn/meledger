@@ -1,12 +1,15 @@
 import { router, type Tabs } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { Snackbar, Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/Icon';
-import { showSnackbar, useSnackbar } from '@/features/feedback/snackbar';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Text } from '@/components/ui/Text';
+import { Toast } from '@/components/ui/Toast';
+import { useVoiceHold } from '@/features/voice/store';
+import { fontFamily } from '@/theme/fonts';
 import { lightColors, spacing, tint } from '@/theme/tokens';
 
 import { MIC_FAB_SIZE, MicFab } from './MicFab';
@@ -29,8 +32,7 @@ const FADE_EXTRA = 40;
  */
 export function TabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
-  const snackbar = useSnackbar((s) => s.current);
-  const dismissSnackbar = useSnackbar((s) => s.dismiss);
+  const setHolding = useVoiceHold((s) => s.setHolding);
   const bottom = insets.bottom + PILL_GAP;
 
   return (
@@ -49,16 +51,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
           style={StyleSheet.absoluteFill}
         />
       </View>
-      <Snackbar
-        key={snackbar?.key}
-        visible={snackbar !== null}
-        onDismiss={dismissSnackbar}
-        duration={snackbar?.duration ?? 3000}
-        action={snackbar?.action}
-        wrapperStyle={[styles.snackbar, { bottom: bottom + PILL_HEIGHT }]}
-      >
-        {snackbar?.message ?? ''}
-      </Snackbar>
+      <Toast bottom={bottom + PILL_HEIGHT + spacing.md} />
       <View style={[styles.row, { bottom }]}>
         <View style={[styles.pill, styles.shadow]}>
           {state.routes.map((route, index) => {
@@ -78,34 +71,43 @@ export function TabBar({ state, navigation }: TabBarProps) {
             };
 
             return (
-              <Pressable
+              <PressableScale
                 key={route.key}
                 onPress={onPress}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: focused }}
                 accessibilityLabel={spec.label}
-                android_ripple={{ color: lightColors.primaryContainer, borderless: true }}
+                scaleTo={0.92}
                 style={styles.item}
               >
                 {/* Always rendered, only its opacity changes, so Android doesn't flatten
                     the view and drop its corner radius when it toggles. */}
                 <View collapsable={false} style={[styles.itemTint, { opacity: focused ? 1 : 0 }]} />
-                <Icon name={focused ? spec.activeIcon : spec.icon} size={24} color={color} />
+                <Icon
+                  name={spec.icon}
+                  weight={focused ? 'fill' : 'regular'}
+                  size={24}
+                  color={color}
+                />
                 <Text
-                  variant="labelSmall"
+                  variant="micro"
                   numberOfLines={1}
-                  style={[{ color }, focused && styles.labelActive]}
+                  color={color}
+                  style={focused && styles.labelActive}
                 >
                   {spec.label}
                 </Text>
-              </Pressable>
+              </PressableScale>
             );
           })}
         </View>
-        {/* Until the voice sheet (milestone 3) has its keyboard button, tap opens manual entry. */}
         <MicFab
-          onPress={() => router.push('/transaction/new')}
-          onLongPress={() => showSnackbar({ message: 'Hold to talk arrives in milestone 3' })}
+          onPress={() => router.push('/voice')}
+          onLongPress={() => {
+            setHolding(true);
+            router.push('/voice');
+          }}
+          onPressOut={() => setHolding(false)}
         />
       </View>
     </>
@@ -130,7 +132,7 @@ const styles = StyleSheet.create({
     borderRadius: PILL_HEIGHT / 2,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: lightColors.outline,
-    backgroundColor: tint(lightColors.surface, 0.94),
+    backgroundColor: lightColors.surface,
   },
   shadow: { boxShadow: '0 8px 24px rgba(0,0,0,0.12)' },
   item: {
@@ -146,6 +148,5 @@ const styles = StyleSheet.create({
     borderRadius: (PILL_HEIGHT - 10) / 2,
     backgroundColor: tint(lightColors.onSurface, 0.08),
   },
-  labelActive: { fontFamily: 'Inter_600SemiBold' },
-  snackbar: { position: 'absolute', left: 0, right: 0, marginBottom: spacing.sm },
+  labelActive: { fontFamily: fontFamily.bold },
 });

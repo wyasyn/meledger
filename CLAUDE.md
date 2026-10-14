@@ -5,7 +5,7 @@ Voice-first personal finance tracker and advisor for Android (Uganda first). Use
 ## Read first
 
 - Full spec and milestones: `docs/BUILD_PROMPT.md` — read it before starting any milestone.
-- Design inspiration images: `docs/design/`: inspiration for layout, cards, spacing and hierarchy, adapted to Material 3 on Android. They are not the colour source: always use the MeLedger tokens (build prompt section 4, `apps/mobile/src/theme/tokens.ts`), even where a screenshot shows other colours. The brand primary is blue `#0067EE`; the mic button is near-black (`onSurface`) by design.
+- Design inspiration images: `docs/design/`: inspiration for layout, cards, spacing and hierarchy, adapted to Material 3 on Android. They are not the colour source: always use the MeLedger tokens (build prompt section 4, `apps/mobile/src/theme/tokens.ts`), even where a screenshot shows other colours. The brand primary is blue `#0067EE`; the tab bar mic is a white circle styled like the tab pill.
 - Reference domain sheets (income, expenses, categories, goals): `docs/references/`.
 
 ## Stack (do not change without asking)

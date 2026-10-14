@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Text } from '@/components/ui/Text';
 import { showSnackbar } from '@/features/feedback/snackbar';
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { lightColors, radius, spacing, tint } from '@/theme/tokens';
 
 /**
  * Black insight pill. Everyone is on the free plan until Pro lands in milestone 6, so it always
@@ -11,18 +12,24 @@ import { lightColors, radius, spacing } from '@/theme/tokens';
  */
 export function InsightBar() {
   return (
-    <Pressable
+    <PressableScale
       onPress={() => showSnackbar({ message: 'MeLedger Pro arrives in milestone 6' })}
+      scaleTo={0.98}
       accessibilityRole="button"
       accessibilityLabel="Get insights with Pro"
       style={styles.bar}
     >
-      <Icon name="star-four-points" size={20} color={lightColors.primary} />
-      <Text variant="labelLarge" style={styles.text}>
+      <View style={styles.spark}>
+        <Icon name="sparkle" weight="fill" size={18} color={lightColors.primary} />
+      </View>
+      <Text variant="label" tone="inverse" style={styles.text}>
         Get insights with Pro
       </Text>
-      <Icon name="chevron-right" size={20} color="#A1A1AA" />
-    </Pressable>
+      <Text variant="label" color="#A1A1AA">
+        Get Pro
+      </Text>
+      <Icon name="chevron-right" size={16} color="#A1A1AA" />
+    </PressableScale>
   );
 }
 
@@ -33,11 +40,19 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     backgroundColor: lightColors.insightBar,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md + 2,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.lg,
+    height: 56,
     // Soft blue glow
-    elevation: 6,
-    shadowColor: lightColors.primary,
+    boxShadow: `0 8px 24px ${tint(lightColors.primary, 0.28)}`,
   },
-  text: { flex: 1, color: '#FFFFFF' },
+  spark: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  text: { flex: 1 },
 });

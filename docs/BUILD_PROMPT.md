@@ -107,7 +107,7 @@ Use the attached inspiration screens. Translate their iOS styling into a Materia
 - Budget rows: circular percentage ring on the right (ring colour = category colour).
 
 ### Navigation
-Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in its own circle to the right of the pill (labels under icons, active item in `onSurface` with filled icon on a light tint, inactive in `onSurfaceVariant`; content fades into the background behind the bar). The mic is a near-black (`onSurface`) circle with a **mic** icon (not "+"):
+Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in its own circle to the right of the pill (labels under icons, active item in `onSurface` with filled icon on a light tint, inactive in `onSurfaceVariant`; content fades into the background behind the bar). The mic is a white circle matching the pill (same outline and shadow, dark mic icon, not "+"). It opens the full-screen voice screen:
 - **Press and hold** = record voice, release = stop and parse.
 - **Tap** = open the voice sheet in tap-to-talk mode.
 - A small keyboard icon button sits beside the voice sheet's mic to switch to manual entry (as in the "Budget Buddy" inspiration, which places a mic and a keyboard button side by side at the bottom).

@@ -1,14 +1,17 @@
-import { Text } from 'react-native-paper';
-
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Screen } from '@/components/ui/Screen';
-import { lightColors } from '@/theme/tokens';
 
 export default function PlanScreen() {
   return (
     <Screen title="My Plan">
-      <Text variant="bodyMedium" style={{ color: lightColors.onSurfaceVariant }}>
-        Coming in milestone 4.
-      </Text>
+      <Card>
+        <EmptyState
+          icon="plan"
+          title="Goals and budgets live here"
+          body="Savings goals, budgets, debts and recurring bills arrive in milestone 4."
+        />
+      </Card>
     </Screen>
   );
 }

@@ -1,22 +1,23 @@
 import { formatAmount, formatMoney } from '@meledger/shared';
 import { startOfMonth, subMonths } from 'date-fns';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { IconButton, Menu, Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/Icon';
+import { IconButton } from '@/components/ui/IconButton';
+import { Menu } from '@/components/ui/Menu';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Text } from '@/components/ui/Text';
 import { showSnackbar } from '@/features/feedback/snackbar';
-import { fontFamily } from '@/theme/fonts';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
 import { monthPeriod, periodLabel } from '../logic';
 import { useHomeStore } from '../store';
 
 const WHITE = '#FFFFFF';
-const WHITE_SOFT = 'rgba(255,255,255,0.75)';
-const WHITE_FILL = 'rgba(255,255,255,0.2)';
+const WHITE_SOFT = 'rgba(255,255,255,0.78)';
+const WHITE_FILL = 'rgba(255,255,255,0.18)';
 
 interface BalanceHeaderProps {
   balance: number;
@@ -29,8 +30,12 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
   const period = useHomeStore((s) => s.period);
   const setPeriod = useHomeStore((s) => s.setPeriod);
   const label = periodLabel(period);
-  const [menuOpen, setMenuOpen] = useState(false);
   const months = Array.from({ length: 12 }, (_, i) => startOfMonth(subMonths(new Date(), i)));
+  const items = months.map((m) => ({
+    value: String(m.getTime()),
+    label: periodLabel(monthPeriod(m)),
+  }));
+  const selected = period.kind === 'month' ? String(period.from.getTime()) : undefined;
 
   const change =
     weekChange === 0
@@ -45,55 +50,38 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
       style={[styles.root, { paddingTop: insets.top + spacing.sm }]}
     >
       <View style={styles.topRow}>
-        <View style={styles.avatar} accessibilityLabel="Profile">
-          <Icon name="account" size={24} color={WHITE} />
+        <View style={styles.avatar} accessible accessibilityLabel="Profile">
+          <Icon name="user" weight="fill" size={22} color={WHITE} />
         </View>
         <Menu
-          visible={menuOpen}
-          onDismiss={() => setMenuOpen(false)}
-          anchorPosition="bottom"
-          anchor={
-            <Pressable
-              onPress={() => setMenuOpen(true)}
+          items={items}
+          selected={selected}
+          onSelect={(value) => setPeriod(monthPeriod(new Date(Number(value))))}
+          accessibilityLabel="Choose a month"
+          anchor={(open) => (
+            <PressableScale
+              onPress={open}
               accessibilityRole="button"
               accessibilityLabel={`Period: ${label}. Change`}
               style={styles.monthPill}
             >
-              <Text variant="labelLarge" style={styles.white}>
+              <Text variant="label" tone="inverse">
                 {label}
               </Text>
-              <Icon name="chevron-down" size={18} color={WHITE} />
-            </Pressable>
-          }
-        >
-          {months.map((m) => (
-            <Menu.Item
-              key={m.getTime()}
-              title={periodLabel(monthPeriod(m))}
-              leadingIcon={
-                period.kind === 'month' && m.getTime() === period.from.getTime()
-                  ? 'check'
-                  : undefined
-              }
-              onPress={() => {
-                setPeriod(monthPeriod(m));
-                setMenuOpen(false);
-              }}
-            />
-          ))}
-        </Menu>
+              <Icon name="chevron-down" weight="bold" size={14} color={WHITE} />
+            </PressableScale>
+          )}
+        />
         <IconButton
-          icon="bell-outline"
-          iconColor={WHITE}
-          containerColor={WHITE_FILL}
-          accessibilityLabel="Notifications"
+          icon="bell"
+          label="Notifications"
+          variant="glass"
           onPress={() => showSnackbar({ message: 'Notifications arrive in milestone 5' })}
-          style={styles.bell}
         />
       </View>
 
       <View style={styles.center}>
-        <Text variant="bodyMedium" style={styles.soft}>
+        <Text variant="caption" color={WHITE_SOFT}>
           Current Balance
         </Text>
         <View
@@ -101,11 +89,21 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
           accessible
           accessibilityLabel={`Current balance ${formatMoney(balance)}`}
         >
-          <Text style={styles.code}>{balance < 0 ? '-UGX' : 'UGX'}</Text>
-          <Text style={styles.amount}>{formatAmount(Math.abs(balance), 'UGX')}</Text>
+          <Text variant="title" color={WHITE_SOFT}>
+            {balance < 0 ? '-UGX' : 'UGX'}
+          </Text>
+          <Text variant="display" tone="inverse">
+            {formatAmount(Math.abs(balance), 'UGX')}
+          </Text>
         </View>
         <View style={styles.changePill}>
-          <Text variant="labelMedium" style={styles.white}>
+          <Icon
+            name={weekChange < 0 ? 'trend-down' : 'trend-up'}
+            weight="bold"
+            size={12}
+            color={WHITE}
+          />
+          <Text variant="small" tone="inverse">
             {change}
           </Text>
         </View>
@@ -115,7 +113,7 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  root: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl + spacing.xxl },
+  root: { paddingHorizontal: spacing.gutter, paddingBottom: spacing.xxl + spacing.xxxl },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   avatar: {
     width: 44,
@@ -128,24 +126,21 @@ const styles = StyleSheet.create({
   monthPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.xs + 2,
+    backgroundColor: WHITE_FILL,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.lg,
+    height: 40,
+  },
+  center: { alignItems: 'center', marginTop: spacing.xxl, gap: spacing.sm },
+  amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+  changePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.xs,
     backgroundColor: WHITE_FILL,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  bell: { margin: 0 },
-  center: { alignItems: 'center', marginTop: spacing.xl, gap: spacing.xs },
-  white: { color: WHITE },
-  soft: { color: WHITE_SOFT },
-  amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  code: { fontFamily: fontFamily.semibold, fontSize: 20, color: WHITE_SOFT },
-  amount: { fontFamily: fontFamily.semibold, fontSize: 36, lineHeight: 44, color: WHITE },
-  changePill: {
-    backgroundColor: WHITE_FILL,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    marginTop: spacing.xs,
+    paddingVertical: spacing.xs + 1,
   },
 });

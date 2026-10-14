@@ -1,12 +1,13 @@
 import { formatAmount } from '@meledger/shared';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon, type IconName } from '@/components/ui/Icon';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Text } from '@/components/ui/Text';
 import { showSnackbar } from '@/features/feedback/snackbar';
-import { fontFamily } from '@/theme/fonts';
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
 interface MoneyCardsProps {
   /** Readable period, e.g. "October 2026" or "12 to 18 Oct 2026". */
@@ -19,21 +20,14 @@ interface MoneyCardsProps {
 export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Text variant="titleMedium">Your Money</Text>
-        <Pressable
-          onPress={() => router.navigate('/report')}
-          accessibilityRole="button"
-          style={styles.details}
-        >
-          <Text variant="labelMedium">Details</Text>
-          <Icon name="chevron-right" size={16} color={lightColors.onSurface} />
-        </Pressable>
-      </View>
+      <SectionHeader
+        title="Your Money"
+        action={{ label: 'Details', onPress: () => router.navigate('/report') }}
+      />
       <View style={styles.cards}>
         <MoneyCard
           label="Income"
-          icon="cash-plus"
+          icon="income"
           color={lightColors.income}
           container={lightColors.incomeContainer}
           amount={income}
@@ -41,7 +35,7 @@ export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
         />
         <MoneyCard
           label="Expenses"
-          icon="wallet-outline"
+          icon="expense"
           color={lightColors.expense}
           container={lightColors.expenseContainer}
           amount={expense}
@@ -54,7 +48,7 @@ export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
 
 interface MoneyCardProps {
   label: string;
-  icon: 'cash-plus' | 'wallet-outline';
+  icon: IconName;
   color: string;
   container: string;
   amount: number;
@@ -65,24 +59,28 @@ function MoneyCard({ label, icon, color, container, amount, info }: MoneyCardPro
   return (
     <View style={styles.card}>
       <View style={[styles.tile, { backgroundColor: container }]}>
-        <Icon name={icon} size={22} color={color} />
+        <Icon name={icon} weight="bold" size={20} color={color} />
       </View>
-      <Pressable
+      <PressableScale
         onPress={() => showSnackbar({ message: info })}
         accessibilityRole="button"
         accessibilityLabel={`${label}: what this means`}
         style={styles.labelRow}
       >
-        <Text variant="bodyMedium" style={styles.muted}>
+        <Text variant="caption" tone="muted">
           {label}
         </Text>
-        <Icon name="information-outline" size={16} color={lightColors.onSurfaceVariant} />
-      </Pressable>
-      <View style={styles.amountRow}>
-        <Text variant="labelLarge" style={styles.muted}>
+        <Icon name="info" size={14} color={lightColors.onSurfaceVariant} />
+      </PressableScale>
+      <View
+        style={styles.amountRow}
+        accessible
+        accessibilityLabel={`${label} UGX ${formatAmount(amount, 'UGX')}`}
+      >
+        <Text variant="caption" tone="muted">
           UGX
         </Text>
-        <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>
+        <Text variant="amount" numberOfLines={1} adjustsFontSizeToFit style={styles.flex}>
           {formatAmount(amount, 'UGX')}
         </Text>
       </View>
@@ -92,34 +90,29 @@ function MoneyCard({ label, icon, color, container, amount, info }: MoneyCardPro
 
 const styles = StyleSheet.create({
   root: { gap: spacing.md },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  details: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: lightColors.surface,
-    borderRadius: radius.pill,
-    paddingLeft: spacing.md,
-    paddingRight: spacing.sm,
-    paddingVertical: spacing.xs + 2,
-  },
   cards: { flexDirection: 'row', gap: spacing.md },
   card: {
     flex: 1,
     backgroundColor: lightColors.surface,
     borderRadius: radius.card,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    padding: spacing.lg + 2,
+    gap: spacing.xs,
+    boxShadow: shadow.card,
   },
   tile: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
-  labelRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  muted: { color: lightColors.onSurfaceVariant },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+  },
   amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs },
-  amount: { flex: 1, fontFamily: fontFamily.semibold, fontSize: 20, color: lightColors.onSurface },
+  flex: { flex: 1 },
 });

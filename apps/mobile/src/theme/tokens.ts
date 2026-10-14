@@ -85,9 +85,51 @@ export const darkColors: ColorTokens = {
   insightBar: '#000000',
 };
 
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 } as const;
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+  /** Screen side padding. */
+  gutter: 20,
+  /** Space between sections on a screen. */
+  section: 28,
+} as const;
 
-export const radius = { card: 20, small: 12, pill: 999 } as const;
+export const radius = {
+  /** Chips inside cards, small tiles. */
+  small: 12,
+  /** Icon tiles. */
+  tile: 14,
+  /** Inputs and field cards. */
+  field: 18,
+  /** Cards and list groups. */
+  card: 24,
+  /** Bottom sheets and popovers. */
+  sheet: 28,
+  pill: 999,
+} as const;
+
+/** Soft shadows (no borders anywhere): cards barely lift, floating things lift more. */
+export const shadow = {
+  card: '0 1px 2px rgba(17,17,17,0.04), 0 4px 16px rgba(17,17,17,0.04)',
+  raised: '0 8px 24px rgba(17,17,17,0.10)',
+  floating: '0 12px 32px rgba(17,17,17,0.16)',
+} as const;
+
+/** Motion: short UI transitions and the springs used for press and sheet feedback. */
+export const motion = {
+  fast: 150,
+  base: 220,
+  slow: 360,
+  /** Press feedback (scale down and back). */
+  press: { damping: 18, stiffness: 320, mass: 0.6 },
+  /** Popovers and toasts settling in. */
+  pop: { damping: 20, stiffness: 260, mass: 0.8 },
+} as const;
 
 /** Tinted tile background: the colour at about 10% opacity. */
 export const tint = (hex: string, alpha = 0.1) =>

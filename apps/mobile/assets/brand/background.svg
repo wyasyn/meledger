@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Deep MeLedger blue with a soft glow behind where the orb sits. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="75%">
+      <stop offset="0" stop-color="#2F86FF"/>
+      <stop offset="0.45" stop-color="#0A5FE0"/>
+      <stop offset="1" stop-color="#062A78"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+</svg>

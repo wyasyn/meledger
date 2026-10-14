@@ -1,11 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, HelperText } from 'react-native-paper';
 
+import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { Text } from '@/components/ui/Text';
 import type { Wallet } from '@/db/schema';
 import { useLedgerData } from '@/features/transactions/useLedgerData';
 import { WalletForm } from '@/features/wallets/components/WalletForm';
@@ -17,7 +18,7 @@ import {
   updateWallet,
   walletHasTransactions,
 } from '@/features/wallets/repo';
-import { lightColors, spacing } from '@/theme/tokens';
+import { spacing } from '@/theme/tokens';
 
 export default function EditWalletScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,7 +29,7 @@ export default function EditWalletScreen() {
     return (
       <>
         <ScreenHeader title="Wallet" />
-        <EmptyState icon="wallet-outline" title="This wallet no longer exists" />
+        <EmptyState icon="wallet" title="This wallet no longer exists" />
       </>
     );
   }
@@ -81,34 +82,39 @@ function EditWallet({ wallet, isMain, isLastActive }: EditWalletProps) {
         <View style={styles.footer}>
           {!isMain && !wallet.archived ? (
             <Button
-              mode="contained-tonal"
-              icon="star-outline"
+              label="Make main wallet"
+              icon="star"
+              variant="secondary"
+              block
               onPress={() => setMainWallet(wallet.id)}
-            >
-              Make main wallet
-            </Button>
+            />
           ) : null}
           <Button
-            mode="contained-tonal"
-            icon={wallet.archived ? 'archive-arrow-up-outline' : 'archive-outline'}
+            label={wallet.archived ? 'Unarchive' : 'Archive'}
+            icon={wallet.archived ? 'restore' : 'archive'}
+            variant="secondary"
+            block
             disabled={isLastActive}
             onPress={() => setWalletArchived(wallet.id, !wallet.archived)}
-          >
-            {wallet.archived ? 'Unarchive' : 'Archive'}
-          </Button>
+          />
           <Button
-            mode="text"
-            icon="delete-outline"
-            textColor={lightColors.expense}
+            label="Delete wallet"
+            icon="trash"
+            variant="danger"
+            block
             disabled={isLastActive}
             onPress={remove}
-          >
-            Delete wallet
-          </Button>
+          />
           {isLastActive ? (
-            <HelperText type="info">You need at least one active wallet.</HelperText>
+            <Text variant="small" tone="muted" align="center">
+              You need at least one active wallet.
+            </Text>
           ) : null}
-          {error ? <HelperText type="error">{error}</HelperText> : null}
+          {error ? (
+            <Text variant="small" tone="expense" align="center">
+              {error}
+            </Text>
+          ) : null}
         </View>
       }
     />

@@ -1,15 +1,15 @@
 import { CATEGORY_COLORS, type CategoryColor, type WalletType } from '@meledger/shared';
 
-import type { IconName } from '@/components/ui/IconTile';
+import type { IconName } from '@/components/ui/Icon';
 
 export const WALLET_TYPE_META: Record<
   WalletType,
   { label: string; icon: IconName; color: CategoryColor }
 > = {
   cash: { label: 'Cash', icon: 'cash', color: 'green' },
-  mobile_money: { label: 'Mobile money', icon: 'cellphone', color: 'amber' },
+  mobile_money: { label: 'Mobile money', icon: 'mobile-money', color: 'amber' },
   bank: { label: 'Bank', icon: 'bank', color: 'blue' },
-  card: { label: 'Card', icon: 'credit-card-outline', color: 'lime' },
+  card: { label: 'Card', icon: 'card', color: 'lime' },
   savings: { label: 'Savings', icon: 'piggy-bank', color: 'teal' },
 };
 

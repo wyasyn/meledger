@@ -1,3 +1,5 @@
+import type { StoredIconKey } from './icons';
+
 /** Category palette keys from the design tokens (build prompt section 4). */
 export const CATEGORY_COLORS = {
   lime: '#65A30D',
@@ -21,8 +23,8 @@ export interface CategorySeed {
   name: string;
   kind: CategoryKind;
   group: string;
-  /** MaterialCommunityIcons glyph name. */
-  icon: string;
+  /** Semantic icon key (see icons.ts). */
+  icon: StoredIconKey;
   color: CategoryColor;
 }
 
@@ -33,7 +35,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Rent/Mortgage',
     kind: 'expense',
     group: 'Fixed',
-    icon: 'home-city',
+    icon: 'rent',
     color: 'lime',
   },
   {
@@ -41,7 +43,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Electricity (Yaka)',
     kind: 'expense',
     group: 'Fixed',
-    icon: 'flash',
+    icon: 'electricity',
     color: 'lime',
   },
   {
@@ -57,7 +59,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Gas',
     kind: 'expense',
     group: 'Fixed',
-    icon: 'gas-cylinder',
+    icon: 'gas',
     color: 'lime',
   },
   {
@@ -65,7 +67,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Internet',
     kind: 'expense',
     group: 'Fixed',
-    icon: 'wifi',
+    icon: 'internet',
     color: 'lime',
   },
   {
@@ -73,7 +75,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Phone',
     kind: 'expense',
     group: 'Fixed',
-    icon: 'cellphone',
+    icon: 'phone',
     color: 'lime',
   },
   {
@@ -81,7 +83,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Groceries',
     kind: 'expense',
     group: 'Food',
-    icon: 'cart',
+    icon: 'groceries',
     color: 'green',
   },
   {
@@ -89,7 +91,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Eating out',
     kind: 'expense',
     group: 'Food',
-    icon: 'silverware-fork-knife',
+    icon: 'eating-out',
     color: 'green',
   },
   {
@@ -105,7 +107,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Boda/Taxi',
     kind: 'expense',
     group: 'Transport',
-    icon: 'motorbike',
+    icon: 'boda',
     color: 'blue',
   },
   {
@@ -113,7 +115,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Fuel',
     kind: 'expense',
     group: 'Transport',
-    icon: 'gas-station',
+    icon: 'fuel',
     color: 'blue',
   },
   {
@@ -121,7 +123,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Maintenance',
     kind: 'expense',
     group: 'Transport',
-    icon: 'wrench',
+    icon: 'maintenance',
     color: 'blue',
   },
   {
@@ -137,7 +139,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Insurance',
     kind: 'expense',
     group: 'Transport',
-    icon: 'shield-car',
+    icon: 'insurance',
     color: 'blue',
   },
   {
@@ -145,7 +147,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Public transport',
     kind: 'expense',
     group: 'Transport',
-    icon: 'bus',
+    icon: 'transport',
     color: 'blue',
   },
   {
@@ -153,7 +155,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Clothes',
     kind: 'expense',
     group: 'Shopping',
-    icon: 'tshirt-crew',
+    icon: 'clothes',
     color: 'pink',
   },
   {
@@ -161,7 +163,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Electronics',
     kind: 'expense',
     group: 'Shopping',
-    icon: 'laptop',
+    icon: 'electronics',
     color: 'pink',
   },
   {
@@ -169,7 +171,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Beauty',
     kind: 'expense',
     group: 'Shopping',
-    icon: 'lipstick',
+    icon: 'beauty',
     color: 'pink',
   },
   {
@@ -177,7 +179,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Home goods',
     kind: 'expense',
     group: 'Shopping',
-    icon: 'sofa',
+    icon: 'home-goods',
     color: 'pink',
   },
   {
@@ -193,7 +195,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Doctor',
     kind: 'expense',
     group: 'Medical',
-    icon: 'stethoscope',
+    icon: 'doctor',
     color: 'orange',
   },
   {
@@ -201,7 +203,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Medication',
     kind: 'expense',
     group: 'Medical',
-    icon: 'pill',
+    icon: 'medication',
     color: 'orange',
   },
   {
@@ -209,7 +211,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Health insurance',
     kind: 'expense',
     group: 'Medical',
-    icon: 'medical-bag',
+    icon: 'health-insurance',
     color: 'orange',
   },
   {
@@ -217,7 +219,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Gym',
     kind: 'expense',
     group: 'Fitness',
-    icon: 'dumbbell',
+    icon: 'gym',
     color: 'teal',
   },
   {
@@ -225,7 +227,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Sports',
     kind: 'expense',
     group: 'Fitness',
-    icon: 'soccer',
+    icon: 'sports',
     color: 'teal',
   },
   {
@@ -233,7 +235,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Equipment',
     kind: 'expense',
     group: 'Fitness',
-    icon: 'weight-lifter',
+    icon: 'equipment',
     color: 'teal',
   },
   {
@@ -241,7 +243,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Wellness',
     kind: 'expense',
     group: 'Fitness',
-    icon: 'spa',
+    icon: 'wellness',
     color: 'teal',
   },
   {
@@ -249,7 +251,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Movies',
     kind: 'expense',
     group: 'Entertainment',
-    icon: 'movie-open',
+    icon: 'movies',
     color: 'amber',
   },
   {
@@ -257,7 +259,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Events',
     kind: 'expense',
     group: 'Entertainment',
-    icon: 'ticket',
+    icon: 'events',
     color: 'amber',
   },
   {
@@ -265,7 +267,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Hobbies',
     kind: 'expense',
     group: 'Entertainment',
-    icon: 'palette',
+    icon: 'hobbies',
     color: 'amber',
   },
   {
@@ -273,7 +275,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Restaurants',
     kind: 'expense',
     group: 'Entertainment',
-    icon: 'food',
+    icon: 'restaurant',
     color: 'amber',
   },
   {
@@ -281,7 +283,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Parties',
     kind: 'expense',
     group: 'Entertainment',
-    icon: 'party-popper',
+    icon: 'parties',
     color: 'amber',
   },
   {
@@ -289,7 +291,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Leisure travel',
     kind: 'expense',
     group: 'Entertainment',
-    icon: 'airplane',
+    icon: 'travel',
     color: 'amber',
   },
   {
@@ -297,7 +299,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Childcare',
     kind: 'expense',
     group: 'Family & Education',
-    icon: 'baby-carriage',
+    icon: 'childcare',
     color: 'lime',
   },
   {
@@ -313,7 +315,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Books',
     kind: 'expense',
     group: 'Family & Education',
-    icon: 'book-open-variant',
+    icon: 'books',
     color: 'lime',
   },
   {
@@ -321,7 +323,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Materials',
     kind: 'expense',
     group: 'Family & Education',
-    icon: 'pencil-ruler',
+    icon: 'materials',
     color: 'lime',
   },
   {
@@ -329,7 +331,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Courses',
     kind: 'expense',
     group: 'Family & Education',
-    icon: 'certificate',
+    icon: 'courses',
     color: 'lime',
   },
   {
@@ -337,7 +339,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Airtime & Data',
     kind: 'expense',
     group: 'Local',
-    icon: 'signal-cellular-3',
+    icon: 'airtime',
     color: 'slate',
   },
   {
@@ -345,7 +347,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Mobile money fees',
     kind: 'expense',
     group: 'Local',
-    icon: 'cash-minus',
+    icon: 'fees',
     color: 'slate',
   },
   {
@@ -353,7 +355,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Family support',
     kind: 'expense',
     group: 'Local',
-    icon: 'account-heart',
+    icon: 'family',
     color: 'slate',
   },
   {
@@ -361,7 +363,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Contributions (weddings, burials)',
     kind: 'expense',
     group: 'Local',
-    icon: 'hand-heart',
+    icon: 'contributions',
     color: 'slate',
   },
   {
@@ -369,7 +371,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Savings group/SACCO',
     kind: 'expense',
     group: 'Local',
-    icon: 'account-group',
+    icon: 'savings-group',
     color: 'slate',
   },
   {
@@ -377,7 +379,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Church/Mosque giving',
     kind: 'expense',
     group: 'Local',
-    icon: 'hands-pray',
+    icon: 'giving',
     color: 'slate',
   },
   {
@@ -385,7 +387,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Business expense',
     kind: 'expense',
     group: 'Local',
-    icon: 'briefcase',
+    icon: 'business-expense',
     color: 'slate',
   },
   {
@@ -393,7 +395,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Salary',
     kind: 'income',
     group: 'Income',
-    icon: 'cash-multiple',
+    icon: 'salary',
     color: 'green',
   },
   {
@@ -401,7 +403,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Freelance/Contract',
     kind: 'income',
     group: 'Income',
-    icon: 'account-tie',
+    icon: 'freelance',
     color: 'green',
   },
   {
@@ -409,7 +411,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Business',
     kind: 'income',
     group: 'Income',
-    icon: 'store',
+    icon: 'business',
     color: 'green',
   },
   {
@@ -417,7 +419,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Gifts received',
     kind: 'income',
     group: 'Income',
-    icon: 'gift-open',
+    icon: 'gift-received',
     color: 'green',
   },
   {
@@ -425,7 +427,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Interest/Dividends',
     kind: 'income',
     group: 'Income',
-    icon: 'percent',
+    icon: 'interest',
     color: 'green',
   },
   {
@@ -433,7 +435,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Refunds',
     kind: 'income',
     group: 'Income',
-    icon: 'cash-refund',
+    icon: 'refund',
     color: 'green',
   },
   {
@@ -441,7 +443,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     name: 'Other',
     kind: 'income',
     group: 'Income',
-    icon: 'dots-horizontal-circle',
+    icon: 'other',
     color: 'green',
   },
 ];

@@ -2,13 +2,15 @@ import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { TagInputSchema } from '@meledger/shared';
 import { type Ref, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, HelperText } from 'react-native-paper';
 
+import { Button } from '@/components/ui/Button';
 import { Sheet, type SheetRef } from '@/components/ui/Sheet';
+import { Text } from '@/components/ui/Text';
+import { PLACEHOLDER_COLOR } from '@/components/ui/TextField';
 import type { Tag } from '@/db/schema';
 import { findOrCreateTag } from '@/features/tags/repo';
-import { fontFamily } from '@/theme/fonts';
-import { lightColors, radius, spacing } from '@/theme/tokens';
+import { typography } from '@/theme/typography';
+import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
 import { TagChip } from './TagChip';
 
@@ -45,17 +47,25 @@ export function TagPickerSheet({ ref, tags, selectedIds, onAdd }: TagPickerSheet
             onChangeText={setName}
             onSubmitEditing={submit}
             placeholder="New tag, e.g. Vacation"
-            placeholderTextColor={lightColors.onSurfaceVariant}
+            placeholderTextColor={PLACEHOLDER_COLOR}
+            cursorColor={lightColors.primary}
             returnKeyType="done"
             maxLength={24}
             accessibilityLabel="New tag name"
             style={styles.input}
           />
-          <Button mode="contained" onPress={submit} disabled={!name.trim()}>
-            Add
-          </Button>
+          <Button label="Add" size="sm" onPress={submit} disabled={!name.trim()} />
         </View>
-        {error ? <HelperText type="error">{error}</HelperText> : null}
+        {error ? (
+          <Text variant="small" tone="expense">
+            {error}
+          </Text>
+        ) : null}
+        {available.length > 0 ? (
+          <Text variant="caption" tone="muted">
+            Your tags
+          </Text>
+        ) : null}
         {available.length > 0 ? (
           <View style={styles.chips}>
             {available.map((tag) => (
@@ -69,17 +79,18 @@ export function TagPickerSheet({ ref, tags, selectedIds, onAdd }: TagPickerSheet
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  input: {
-    flex: 1,
-    borderRadius: radius.small,
-    backgroundColor: lightColors.background,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    fontFamily: fontFamily.regular,
-    fontSize: 14,
-    color: lightColors.onSurface,
+  body: { paddingHorizontal: spacing.gutter, gap: spacing.md },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: lightColors.surface,
+    borderRadius: radius.field,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.sm,
+    height: 60,
+    boxShadow: shadow.card,
   },
+  input: { flex: 1, ...typography.body, color: lightColors.onSurface, padding: 0 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });
