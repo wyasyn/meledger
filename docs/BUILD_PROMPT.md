@@ -107,10 +107,10 @@ Use the attached inspiration screens for layout, card style, spacing and hierarc
 - Budget rows: circular percentage ring on the right (ring colour = category colour).
 
 ### Navigation
-Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in its own circle to the right of the pill (labels under icons, active item in `onSurface` with filled icon on a light tint, inactive in `onSurfaceVariant`; content fades into the background behind the bar). The mic is a white circle matching the pill (same outline and shadow, dark mic icon, not "+"). It opens the full-screen voice screen:
+Floating pill bottom bar with **Home, Report, Plan, Settings** and a **+** in its own circle to the right of the pill (labels under icons, active item in `onSurface` with filled icon on a light tint, inactive in `onSurfaceVariant`; content fades into the background behind the bar). The + is a white circle matching the pill (same outline and shadow, dark icon). It opens the voice sheet:
 - **Press and hold** = record voice, release = stop and parse.
-- **Tap** = open the voice screen, listening.
-- The voice screen's bottom row is keyboard (manual entry), mic (start/stop) and close, as in the "Budget Buddy" inspiration's mic and keyboard pair.
+- **Tap** = open the voice sheet, listening.
+- The voice sheet's bottom row is keyboard (manual entry), mic (start/stop) and close, as in the "Budget Buddy" inspiration's mic and keyboard pair.
 
 ## 5. Screens
 
@@ -121,8 +121,8 @@ Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in it
 4. **Transactions** list grouped by day ("Monday, 12 October 2026 · Total UGX 295,776"), with filter chip ("For the period") and pin/history icons. Each row: category icon tile, title (note or category), sub-line with wallet chip and tag/person chips, amount right-aligned (red for expense, green for income), wallet balance after it in grey below.
 5. Wallet strip (horizontal chips: Cash, MTN MoMo, Airtel Money, Bank) above transactions; tapping filters the list.
 
-### 5.2 Voice screen (`/voice`, full-screen, opened from the tab bar mic)
-- Light page with the MeLedger orb in the centre (a Skia shader in brand blues inside a thin halo ring) that drifts calmly when idle and swells smoothly with the live voice volume. "How can I help?" becomes the live transcript in large text as the user speaks. Only one close control, in the bottom row.
+### 5.2 Voice sheet (bottom sheet over the current screen, opened from the tab bar +)
+- Opens to about 62% height with an eased slide (drag up for full height; drag down or tap outside to close). Light gradient sheet with the MeLedger orb in the centre (a Skia shader in brand blues, no ring) that grows as the sheet expands, that drifts calmly when idle and swells smoothly with the live voice volume. "How can I help?" becomes the live transcript in large text as the user speaks. Only one close control, in the bottom row.
 - On stop: show a spinner briefly, then **one confirmation card per parsed transaction** styled like the "Add New" inspiration: Account row (wallet icon, "Cash (Main wallet)", Change button), Amount (very large, editable), Category, Tag chips (removable, coloured), Date field with calendar icon, Note.
 - Every field is a tappable chip; tapping opens a picker or lets the user re-speak just that field.
 - Buttons: **Save all** (primary), Discard. After save: snackbar "Saved 2 entries · Undo" for 5 seconds.

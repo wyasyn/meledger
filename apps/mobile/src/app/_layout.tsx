@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { useDatabaseReady } from '@/db/useDatabaseReady';
 import { PermissionSheetHost } from '@/features/permissions/PermissionSheet';
 import { useProfile } from '@/features/profile/repo';
+import { VoiceSheetHost } from '@/features/voice/components/VoiceSheet';
 import { appFonts } from '@/theme/fonts';
 import { lightColors, spacing } from '@/theme/tokens';
 
@@ -42,6 +43,8 @@ export default function RootLayout() {
           ) : (
             <AppStack />
           )}
+          {/* Before the permission host, so its sheet can stack on top of the voice sheet. */}
+          <VoiceSheetHost />
           <PermissionSheetHost />
           {splashDone ? null : <AnimatedSplash onDone={() => setSplashDone(true)} />}
         </BottomSheetModalProvider>
@@ -70,11 +73,6 @@ function AppStack() {
       <Stack.Protected guard={!onboarded}>
         <Stack.Screen name="onboarding" />
       </Stack.Protected>
-      {/* Reachable from both: onboarding's "Try it" step opens it too. */}
-      <Stack.Screen
-        name="voice"
-        options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
-      />
     </Stack>
   );
 }

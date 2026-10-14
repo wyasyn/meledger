@@ -6,24 +6,24 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { lightColors } from '@/theme/tokens';
 
 interface MicFabProps {
-  /** Tap: opens the voice screen, listening. */
+  /** Tap: opens the voice sheet, listening. */
   onPress: () => void;
-  /** Press and hold: opens the voice screen in hold-to-talk mode. */
+  /** Press and hold: opens the voice sheet in hold-to-talk mode. */
   onLongPress: () => void;
   /** Release: ends hold-to-talk. */
   onPressOut?: () => void;
 }
 
-/** Diameter of the mic circle; the tab pill beside it matches this height. */
+/** Diameter of the circle; the tab pill beside it matches this height. */
 export const MIC_FAB_SIZE = 64;
 
-/** Mic in its own circle next to the tab pill, styled like the pill and its tab items. */
+/** "+" in its own circle next to the tab pill, styled like the pill; opens the voice sheet. */
 export function MicFab({ onPress, onLongPress, onPressOut }: MicFabProps) {
   return (
     <PressableScale
       accessibilityRole="button"
-      accessibilityLabel="Log by voice"
-      accessibilityHint="Tap to talk, or press and hold to talk while holding"
+      accessibilityLabel="Add an entry"
+      accessibilityHint="Opens MeLedger listening; switch to the keyboard to type. Press and hold to talk while holding"
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
@@ -37,7 +37,7 @@ export function MicFab({ onPress, onLongPress, onPressOut }: MicFabProps) {
       scaleTo={0.92}
       style={styles.circle}
     >
-      <Icon name="mic" size={26} color={lightColors.onSurface} />
+      <Icon name="plus" weight="bold" size={26} color={lightColors.onSurface} />
     </PressableScale>
   );
 }

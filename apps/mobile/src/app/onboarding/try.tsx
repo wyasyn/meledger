@@ -1,8 +1,7 @@
-import { router } from 'expo-router';
-
 import { Button } from '@/components/ui/Button';
 import { nextStep, OnboardingStep } from '@/features/onboarding/OnboardingStep';
 import { Orb } from '@/features/voice/components/Orb';
+import { openVoiceSheet } from '@/features/voice/store';
 
 export default function TryStep() {
   return (
@@ -19,7 +18,7 @@ export default function TryStep() {
         icon="mic"
         variant="secondary"
         block
-        onPress={() => router.push('/voice')}
+        onPress={openVoiceSheet}
       />
     </OnboardingStep>
   );

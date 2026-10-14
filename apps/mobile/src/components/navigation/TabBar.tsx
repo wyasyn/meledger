@@ -1,4 +1,4 @@
-import { router, type Tabs } from 'expo-router';
+import type { Tabs } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -8,7 +8,7 @@ import { Icon } from '@/components/ui/Icon';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Toast } from '@/components/ui/Toast';
-import { useVoiceHold } from '@/features/voice/store';
+import { openVoiceSheet, useVoiceHold } from '@/features/voice/store';
 import { fontFamily } from '@/theme/fonts';
 import { lightColors, spacing, tint } from '@/theme/tokens';
 
@@ -102,10 +102,10 @@ export function TabBar({ state, navigation }: TabBarProps) {
           })}
         </View>
         <MicFab
-          onPress={() => router.push('/voice')}
+          onPress={openVoiceSheet}
           onLongPress={() => {
             setHolding(true);
-            router.push('/voice');
+            openVoiceSheet();
           }}
           onPressOut={() => setHolding(false)}
         />
