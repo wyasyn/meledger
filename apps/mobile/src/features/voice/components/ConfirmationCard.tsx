@@ -56,7 +56,7 @@ interface ConfirmationCardProps {
 }
 
 /**
- * One parsed entry, laid out like the manual "Add New" form (build prompt section 5.2). Fields
+ * One entry, laid out like the "Add New" inspiration (build prompt section 5.2). Fields
  * the parser was unsure of carry an orange "Check this" ring until the user touches them.
  */
 export function ConfirmationCard({

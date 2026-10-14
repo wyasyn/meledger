@@ -1,6 +1,6 @@
 import { formatMoney, periodTotals, totalBalanceAt } from '@meledger/shared';
 import { subDays } from 'date-fns';
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useCallback, useMemo, useRef } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
@@ -25,6 +25,7 @@ import { useHomeStore } from '@/features/home/store';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { groupByDay } from '@/features/transactions/logic';
 import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData';
+import { openVoiceSheet } from '@/features/voice/store';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
 export default function HomeScreen() {
@@ -159,13 +160,7 @@ export default function HomeScreen() {
                 ? 'Nothing in this wallet for this period.'
                 : 'Log what you spend and earn to see it here.'
             }
-            action={
-              <Button
-                label="Add an entry"
-                icon="plus"
-                onPress={() => router.push('/transaction/new')}
-              />
-            }
+            action={<Button label="Add an entry" icon="mic" onPress={openVoiceSheet} />}
           />
         }
         // Clears the floating tab bar.

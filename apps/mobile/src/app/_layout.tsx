@@ -67,7 +67,6 @@ function AppStack() {
     <Stack key={onboarded ? 'app' : 'onboarding'} screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={onboarded}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="transaction/new" />
         <Stack.Screen name="transaction/[id]" />
         <Stack.Screen name="wallets/index" />
         <Stack.Screen name="wallets/new" />

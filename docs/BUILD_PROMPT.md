@@ -133,8 +133,9 @@ Floating pill bottom bar with **Home, Report, Plan, Settings** and a **+** in it
 - If the utterance is a question ("how much did I spend on boda this week?"), show the answer card instead (and speak it if spoken replies are on).
 - If the utterance is a command ("set food budget to 600k", "remind me to pay rent on the 28th"), show a confirmation card for that action.
 
-### 5.3 Add / edit transaction (manual, `/transaction/new`)
-Same field cards as the confirmation card, with a segmented "Expense / Income / Transfer" selector top-right (as in the "Add New ▾ Expense" inspiration). Transfer shows From wallet, To wallet and Fee.
+### 5.3 Add / edit transaction
+There is one way to add an entry: the voice sheet. Its keyboard button opens a blank entry card in the same sheet (full height, amount focused), with the same fields as the confirmation card and an "Expense / Income / Transfer" selector top-right (as in the "Add New ▾ Expense" inspiration). Transfer shows From wallet, To wallet and Fee. Every "add" entry point (tab bar +, empty states) opens the voice sheet; there is no separate add screen.
+Editing an existing entry (`/transaction/[id]`, opened from its row) uses the same field cards on its own screen, with Delete.
 
 ### 5.4 Report (`/(tabs)/report`)
 Follow the Report inspiration exactly:
