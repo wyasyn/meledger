@@ -4,8 +4,7 @@ import {
   TransactionInputSchema,
   type TransactionType,
 } from '@meledger/shared';
-import { format, isToday, isYesterday } from 'date-fns';
-import { router } from 'expo-router';
+import { format } from 'date-fns';
 import { useMemo, useRef } from 'react';
 import { type Path, type PathValue, useForm, useWatch } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
@@ -30,6 +29,8 @@ import { mainWalletId } from '@/features/wallets/logic';
 import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
 import type { LedgerData } from '../useLedgerData';
+import { dateLabel } from '../logic';
+import { AccountCard } from './AccountCard';
 import { CategoryPickerSheet } from './CategoryPickerSheet';
 import { TagChip } from './TagChip';
 import { TagPickerSheet } from './TagPickerSheet';
@@ -315,67 +316,6 @@ export function TransactionForm({
         }}
       />
     </View>
-  );
-}
-
-function dateLabel(date: Date): string {
-  const day = format(date, 'd MMM yyyy');
-  if (isToday(date)) return `Today, ${day}`;
-  if (isYesterday(date)) return `Yesterday, ${day}`;
-  return format(date, 'EEEE, d MMM yyyy');
-}
-
-interface AccountCardProps {
-  label: string;
-  wallet: LedgerData['wallets'][number] | undefined;
-  isMain: boolean;
-  onChange: () => void;
-  error?: string;
-  emptyHint?: string;
-}
-
-/** "Account" row from the Add New inspiration: wallet tile, name, Change button. */
-function AccountCard({ label, wallet, isMain, onChange, error, emptyHint }: AccountCardProps) {
-  return (
-    <FieldCard error={error && !emptyHint ? error : undefined}>
-      <View style={styles.row}>
-        <IconTile
-          icon={wallet?.icon ?? 'wallet'}
-          color={wallet?.color ?? lightColors.onSurfaceVariant}
-          round
-        />
-        <View style={styles.flex}>
-          <Text variant="caption" tone="muted">
-            {label}
-          </Text>
-          {wallet ? (
-            <Text variant="subtitle" numberOfLines={1}>
-              {wallet.name}
-              {isMain ? (
-                <Text variant="body" tone="muted">
-                  {' '}
-                  (Main wallet)
-                </Text>
-              ) : null}
-            </Text>
-          ) : (
-            <Text variant="subtitle" tone="muted">
-              {emptyHint ?? 'Choose a wallet'}
-            </Text>
-          )}
-        </View>
-        {emptyHint ? (
-          <Button
-            label="Add wallet"
-            variant="secondary"
-            size="sm"
-            onPress={() => router.push('/wallets/new')}
-          />
-        ) : (
-          <Button label="Change" variant="secondary" size="sm" onPress={onChange} />
-        )}
-      </View>
-    </FieldCard>
   );
 }
 

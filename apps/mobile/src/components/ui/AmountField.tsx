@@ -18,6 +18,8 @@ interface AmountFieldProps {
   /** "xl" is the giant amount of the Add New inspiration. */
   size?: 'xl' | 'md';
   error?: string;
+  /** Orange "check this" hint (see FieldCard). */
+  attention?: string;
   autoFocus?: boolean;
   accessibilityLabel?: string;
   /** Grey fill for a field nested inside a white card. */
@@ -31,6 +33,7 @@ export function AmountField({
   onChange,
   size = 'md',
   error,
+  attention,
   autoFocus = false,
   accessibilityLabel,
   inset = false,
@@ -38,7 +41,13 @@ export function AmountField({
   const [focused, setFocused] = useState(false);
   const xl = size === 'xl';
   return (
-    <FieldCard label={label} error={error} focused={focused} style={inset && styles.inset}>
+    <FieldCard
+      label={label}
+      error={error}
+      attention={attention}
+      focused={focused}
+      style={inset && styles.inset}
+    >
       <View style={styles.row}>
         <Text variant={xl ? 'title' : 'subtitle'} tone="muted">
           UGX

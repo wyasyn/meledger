@@ -21,15 +21,29 @@ function columns(input: TransactionInput) {
   };
 }
 
+/** For entries made by voice: what was said and how sure the parser was (0 to 1). */
+export interface VoiceMeta {
+  transcript: string;
+  confidence: number;
+}
+
 export async function createTransaction(
   input: TransactionInput,
   source: TransactionSource = 'keyboard',
+  voice?: VoiceMeta,
 ): Promise<string> {
   const id = newId();
   const stamps = created();
   db.transaction((tx) => {
     tx.insert(transactions)
-      .values({ id, ...stamps, ...columns(input), source })
+      .values({
+        id,
+        ...stamps,
+        ...columns(input),
+        source,
+        transcript: voice?.transcript ?? null,
+        confidence: voice?.confidence ?? null,
+      })
       .run();
     for (const tagId of input.tagIds) {
       tx.insert(transactionTags)

@@ -1,5 +1,5 @@
 import { walletDeltas, type LedgerTransaction } from '@meledger/shared';
-import { format, startOfDay } from 'date-fns';
+import { format, isToday, isYesterday, startOfDay } from 'date-fns';
 
 export interface DaySection<T> {
   key: string;
@@ -36,4 +36,12 @@ export function groupByDay<T extends LedgerTransaction>(sorted: readonly T[]): D
 export function parseAmountInput(text: string): number {
   const digits = text.replace(/\D/g, '').slice(0, 12);
   return digits ? Number.parseInt(digits, 10) : 0;
+}
+
+/** "Today, 14 Oct 2026", "Yesterday, 13 Oct 2026", or "Friday, 9 Oct 2026". */
+export function dateLabel(date: Date): string {
+  const day = format(date, 'd MMM yyyy');
+  if (isToday(date)) return `Today, ${day}`;
+  if (isYesterday(date)) return `Yesterday, ${day}`;
+  return format(date, 'EEEE, d MMM yyyy');
 }

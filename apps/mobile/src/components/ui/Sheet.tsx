@@ -68,6 +68,9 @@ export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: S
       backdropComponent={backdrop}
       animationConfigs={animationConfigs}
       onDismiss={onDismiss}
+      // Pickers opened from another sheet (e.g. the voice sheet's cards) stack on top of it;
+      // the default "switch" minimizes the parent, which unmounts the picker with it.
+      stackBehavior="push"
       topInset={insets.top + spacing.sm}
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"

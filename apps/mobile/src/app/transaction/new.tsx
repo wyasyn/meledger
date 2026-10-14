@@ -16,7 +16,7 @@ export default function NewTransactionScreen() {
 }
 
 function NewTransactionForm({ data }: { data: LedgerData }) {
-  // The voice screen hands over what was said as the note until speech parsing lands.
+  // The voice sheet hands over what was said when it could not turn it into an entry.
   const { note } = useLocalSearchParams<{ note?: string }>();
   const [initial] = useState<TransactionInput>(() => ({
     type: 'expense',

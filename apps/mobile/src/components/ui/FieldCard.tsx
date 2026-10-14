@@ -9,6 +9,8 @@ import { Text } from './Text';
 interface FieldCardProps {
   label?: string;
   error?: string;
+  /** Soft orange ring and hint for a value to double-check (e.g. one the voice parser was unsure of). */
+  attention?: string;
   /** Shows the soft blue focus ring (text fields set this while focused). */
   focused?: boolean;
   onPress?: () => void;
@@ -21,6 +23,7 @@ interface FieldCardProps {
 export function FieldCard({
   label,
   error,
+  attention,
   focused = false,
   onPress,
   accessibilityLabel,
@@ -28,7 +31,13 @@ export function FieldCard({
   children,
 }: FieldCardProps) {
   // Custom style first, so the focus and error rings always show.
-  const cardStyle = [styles.card, style, focused && styles.focused, error ? styles.invalid : null];
+  const cardStyle = [
+    styles.card,
+    style,
+    attention && !error ? styles.attention : null,
+    focused && styles.focused,
+    error ? styles.invalid : null,
+  ];
   const body = (
     <>
       {label ? (
@@ -40,6 +49,10 @@ export function FieldCard({
       {error ? (
         <Text variant="small" tone="expense" accessibilityLiveRegion="polite">
           {error}
+        </Text>
+      ) : attention ? (
+        <Text variant="small" color={lightColors.warning}>
+          {attention}
         </Text>
       ) : null}
     </>
@@ -68,5 +81,6 @@ const styles = StyleSheet.create({
     boxShadow: shadow.card,
   },
   focused: { boxShadow: `0 0 0 2px ${tint(lightColors.primary, 0.35)}` },
+  attention: { boxShadow: `0 0 0 2px ${tint(lightColors.warning, 0.4)}` },
   invalid: { boxShadow: `0 0 0 2px ${tint(lightColors.expense, 0.35)}` },
 });

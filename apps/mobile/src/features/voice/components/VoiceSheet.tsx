@@ -12,8 +12,9 @@ import {
 import * as Haptics from 'expo-haptics';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { LinearGradient } from 'expo-linear-gradient';
+import { formatMoney, localParse, type ParseResult } from '@meledger/shared';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -34,16 +35,49 @@ import { IconButton } from '@/components/ui/IconButton';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { showPermissionSheet } from '@/features/permissions/store';
+import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData';
+import { mainWalletId } from '@/features/wallets/logic';
 import { lightColors, radius, shadow, spacing, tint } from '@/theme/tokens';
 
+import { type Answer, answerQuestion, buildParseContext, toDraft, type VoiceDraft } from '../logic';
 import { useVoiceHold, useVoiceSheet } from '../store';
 import { useSpeechSession } from '../useSpeechSession';
+import { loadVocabulary } from '../vocabulary';
 import { Orb, type OrbMode } from './Orb';
+import { VoiceReview } from './VoiceReview';
 
 const HALF = 0.62;
 const MIC = 76;
 const CONTROLS = MIC;
 const HEADER = 56;
+/** How long the orb "thinks" before the result shows, so the change never feels abrupt. */
+const THINK_MS = 600;
+
+/** What the sheet shows after listening. */
+type Outcome =
+  | { kind: 'none' }
+  | { kind: 'review'; drafts: VoiceDraft[] }
+  | { kind: 'answer'; answer: Answer }
+  | { kind: 'notice'; title: string; body: string; typeIt?: boolean };
+
+const COMING_SOON: Record<string, { title: string; body: string }> = {
+  set_budget: {
+    title: 'Budgets are coming soon',
+    body: 'Setting a budget by voice arrives with the Plan tab.',
+  },
+  set_goal: {
+    title: 'Goals are coming soon',
+    body: 'Creating a goal by voice arrives with the Plan tab.',
+  },
+  contribute_goal: {
+    title: 'Goals are coming soon',
+    body: 'Adding to a goal by voice arrives with the Plan tab.',
+  },
+  add_reminder: {
+    title: 'Reminders are coming soon',
+    body: 'Setting a reminder by voice arrives in a later update.',
+  },
+};
 
 /** Mounted once in the root layout; the tab bar "+" opens it with openVoiceSheet(). */
 export function VoiceSheetHost() {
@@ -113,19 +147,87 @@ function SheetBackground({ style }: BottomSheetBackgroundProps) {
 function VoicePanel() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { animatedPosition } = useBottomSheet();
+  const { animatedPosition, snapToIndex } = useBottomSheet();
   const { animatedLayoutState } = useBottomSheetInternal();
   const { dismiss } = useBottomSheetModal();
   const { status, transcript, level, error, start, stop, cancel } = useSpeechSession();
   const holding = useVoiceHold((s) => s.holding);
   const startedByHold = useRef(holding);
+  const data = useLedgerData();
+  const ledger = useLedger(data);
+  const [outcome, setOutcome] = useState<Outcome>({ kind: 'none' });
 
   const listening = status === 'listening' || status === 'starting';
-  const mode: OrbMode = listening
-    ? 'listening'
-    : status === 'done' && transcript
-      ? 'thinking'
-      : 'idle';
+  // Between the end of listening and the parsed result, the orb shows it is working.
+  const finished = status === 'done' && transcript.trim() !== '' && data !== undefined;
+  const thinking = finished && outcome.kind === 'none';
+  const mode: OrbMode = listening ? 'listening' : thinking ? 'thinking' : 'idle';
+
+  const outcomeFor = (result: ParseResult, now: Date): Outcome => {
+    if (result.intent === 'log' && result.items.length > 0 && data) {
+      const main = mainWalletId(data.wallets);
+      const stamp = Date.now();
+      return {
+        kind: 'review',
+        drafts: result.items.map((item, i) => toDraft(item, `${stamp}-${i}`, main, now)),
+      };
+    }
+    if (result.intent === 'question') {
+      if (!result.question || !data || !ledger) {
+        return {
+          kind: 'notice',
+          title: "I can't answer that one yet",
+          body: 'Ask how much you spent or earned, what you spent most on, or your balance.',
+        };
+      }
+      const transactions = data.transactions.map((tx, i) => ({
+        ...ledger.entries[i]!,
+        categoryId: tx.categoryId,
+      }));
+      const wallets = data.wallets.filter((w) => !w.archived);
+      return {
+        kind: 'answer',
+        answer: answerQuestion(
+          result.question,
+          { transactions, categories: data.categories, wallets, balances: ledger.balances },
+          now,
+        ),
+      };
+    }
+    const soon = COMING_SOON[result.intent];
+    if (soon) return { kind: 'notice', ...soon };
+    return {
+      kind: 'notice',
+      title: "I didn't catch an amount",
+      body: 'Try something like "lunch 12k cash", or type it in.',
+      typeIt: true,
+    };
+  };
+
+  // When listening ends with words, parse them on the device (build prompt section 6).
+  useEffect(() => {
+    if (!finished || !data || !ledger) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const now = new Date();
+      const vocabulary = await loadVocabulary();
+      const ctx = buildParseContext(data.wallets, data.categories, vocabulary, now);
+      const result = localParse(transcript, ctx);
+      if (!cancelled) setOutcome(outcomeFor(result, now));
+    }, THINK_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // Parse once per finished session; later data changes must not re-run it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished]);
+
+  // The cards need room: ease up to full height to review them.
+  const reviewing = outcome.kind === 'review';
+  useEffect(() => {
+    if (reviewing) snapToIndex(1);
+  }, [reviewing, snapToIndex]);
   const orbSize = Math.min(width * 0.8, 340);
 
   const begin = async () => {
@@ -151,7 +253,10 @@ function VoicePanel() {
   const toggle = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (listening) stop();
-    else begin();
+    else {
+      setOutcome({ kind: 'none' });
+      begin();
+    }
   };
 
   const close = () => {
@@ -202,20 +307,44 @@ function VoicePanel() {
   }));
 
   const heading =
-    transcript ||
-    (status === 'error'
-      ? "I couldn't hear that"
-      : listening
-        ? "I'm listening…"
-        : 'How can I help?');
+    outcome.kind === 'answer'
+      ? outcome.answer.text
+      : outcome.kind === 'notice'
+        ? outcome.title
+        : transcript ||
+          (status === 'error'
+            ? "I couldn't hear that"
+            : listening
+              ? "I'm listening…"
+              : 'How can I help?');
   const hint =
-    status === 'error'
-      ? (error?.message ?? 'Something went wrong. Try again.')
-      : listening
-        ? 'Tap the mic when you are done'
-        : status === 'done' && transcript
-          ? 'Turning this into entries arrives soon. For now you can type it in.'
-          : 'Say something like "lunch 12k cash", or tap the keyboard to type';
+    outcome.kind === 'answer' || (outcome.kind === 'notice' && outcome.typeIt)
+      ? `You said: "${transcript}"`
+      : outcome.kind === 'notice'
+        ? outcome.body
+        : status === 'error'
+          ? (error?.message ?? 'Something went wrong. Try again.')
+          : listening
+            ? 'Tap the mic when you are done'
+            : thinking
+              ? 'Working it out…'
+              : 'Say something like "lunch 12k cash", or tap the keyboard to type';
+
+  if (outcome.kind === 'review' && data) {
+    return (
+      <BottomSheetView style={styles.root}>
+        <Animated.View style={[styles.review, canvasStyle]}>
+          <VoiceReview
+            transcript={transcript}
+            drafts={outcome.drafts}
+            data={data}
+            onDrafts={(drafts) => setOutcome({ kind: 'review', drafts })}
+            onDone={close}
+          />
+        </Animated.View>
+      </BottomSheetView>
+    );
+  }
 
   return (
     <BottomSheetView style={styles.root}>
@@ -251,7 +380,19 @@ function VoicePanel() {
             <Text variant="caption" tone="muted" align="center">
               {hint}
             </Text>
-            {status === 'done' && transcript ? (
+            {outcome.kind === 'answer' && outcome.answer.rows.length > 0 ? (
+              <Animated.View entering={FadeInDown.duration(260)} style={styles.rows}>
+                {outcome.answer.rows.map((row) => (
+                  <View key={row.label} style={styles.answerRow}>
+                    <Text variant="body" style={styles.flex} numberOfLines={1}>
+                      {row.label}
+                    </Text>
+                    <Text variant="label">{formatMoney(row.amount)}</Text>
+                  </View>
+                ))}
+              </Animated.View>
+            ) : null}
+            {outcome.kind === 'notice' && outcome.typeIt ? (
               <Animated.View entering={FadeInDown.duration(260)} style={styles.result}>
                 <Button
                   label="Type it in"
@@ -316,6 +457,23 @@ const styles = StyleSheet.create({
   textBox: { flexGrow: 0, maxHeight: 160, alignSelf: 'stretch' },
   textContent: { paddingHorizontal: spacing.xxxl, gap: spacing.sm },
   result: { alignItems: 'center', paddingTop: spacing.sm },
+  review: { overflow: 'hidden' },
+  rows: {
+    alignSelf: 'stretch',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.field,
+    backgroundColor: lightColors.surface,
+    boxShadow: shadow.card,
+  },
+  answerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  flex: { flex: 1 },
   controls: {
     position: 'absolute',
     top: 0,
