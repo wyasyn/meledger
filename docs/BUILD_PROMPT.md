@@ -82,23 +82,23 @@ Use the attached inspiration screens. Translate their iOS styling into a Materia
 ### Colour tokens (light theme; derive a dark theme with the same roles)
 | Token | Value | Use |
 | --- | --- | --- |
-| primary | `#8B5CF6` (violet) | FAB, active tab, toggles, selected chips, header gradient |
-| primaryContainer | `#EDE7FE` | Selected chip backgrounds, Pro badge |
-| headerGradient | `#A78BFA → #8B5CF6` | Home balance header |
+| primary | `#0067EE` (blue) | FAB, active tab, toggles, selected chips, header gradient |
+| primaryContainer | `#E4F0FF` | Selected chip backgrounds, Pro badge |
+| headerGradient | `#2684FC → #0067EE` | Home balance header |
 | background | `#F4F4F5` | Screen background |
 | surface | `#FFFFFF` | Cards |
 | onSurface | `#111111` | Primary text |
 | onSurfaceVariant | `#71717A` | Secondary text, labels |
-| outline | `#E4E4E7` | Card borders (1px) |
+| outline | `#E4E4E7` | Dividers and placeholder text only (no borders) |
 | income | `#2E9BF0` blue icon tile on `#E6F3FE` | Income card |
 | expense | `#EF4444` red icon tile on `#FDECEC`; amounts in red `-12,000` | Expenses |
 | positive | `#16A34A` on `#E7F6EC` | "+12% vs last month" pills |
 | warning banner | `#F97316` (orange) with white text | "You're 30% behind schedule" on goal cards |
-| insight bar | `#111111` pill with a soft violet glow, sparkle icon in violet | "Your insight is ready" |
-| category palette | violet `#8B5CF6`, blue `#2E9BF0`, green `#22C55E`, orange `#F97316`, pink `#EC4899`, teal `#14B8A6`, amber `#F59E0B`, slate `#64748B` | Donut segments, progress bars, icon tiles (tile = colour at ~10% opacity, icon = full colour) |
+| insight bar | `#111111` pill with a soft blue glow, sparkle icon in blue | "Your insight is ready" |
+| category palette | lime `#65A30D`, blue `#2E9BF0`, green `#22C55E`, orange `#F97316`, pink `#EC4899`, teal `#14B8A6`, amber `#F59E0B`, slate `#64748B` | Donut segments, progress bars, icon tiles (tile = colour at ~10% opacity, icon = full colour) |
 
 ### Shape, type, spacing
-- Card radius 20, small elements radius 12, pills fully rounded. Cards: white, 1px `outline` border, very soft shadow (elevation 1).
+- Card radius 20, small elements radius 12, pills fully rounded. No borders on any screen. Cards, list groups, form field cards and chips are flat fills: white on the grey `background`, grey `background` inside a white card; selected chips use `primaryContainer`. Secondary buttons are tonal, not outlined.
 - Font: Inter (via `expo-font`/`@expo-google-fonts/inter`). Sizes: display balance 36/600; screen title 20/600; card title 16/600; body 14/400; label 12/500.
 - Large amounts: number in `onSurface`, currency code in `onSurfaceVariant` and smaller (the inspiration greys the cents; UGX has none, so grey the "UGX" prefix instead).
 - Spacing scale 4/8/12/16/20/24. Screen padding 16.
@@ -107,7 +107,7 @@ Use the attached inspiration screens. Translate their iOS styling into a Materia
 - Budget rows: circular percentage ring on the right (ring colour = category colour).
 
 ### Navigation
-Bottom bar with **Home, Report, [centre mic FAB], Plan, Settings**, matching the inspiration (labels under icons, active item in `onSurface` with filled icon, inactive in `onSurfaceVariant`). The centre FAB is a raised violet circle with a **mic** icon (not "+"):
+Floating pill bottom bar with **Home, Report, Plan, Settings** and the mic in its own circle to the right of the pill (labels under icons, active item in `onSurface` with filled icon on a light tint, inactive in `onSurfaceVariant`; content fades into the background behind the bar). The mic is a near-black (`onSurface`) circle with a **mic** icon (not "+"):
 - **Press and hold** = record voice, release = stop and parse.
 - **Tap** = open the voice sheet in tap-to-talk mode.
 - A small keyboard icon button sits beside the voice sheet's mic to switch to manual entry (as in the "Budget Buddy" inspiration, which places a mic and a keyboard button side by side at the bottom).
@@ -115,7 +115,7 @@ Bottom bar with **Home, Report, [centre mic FAB], Plan, Settings**, matching the
 ## 5. Screens
 
 ### 5.1 Home (`/(tabs)/index`)
-1. **Violet gradient header**: avatar (or initials), month selector pill ("October 2026 ▾"), notification bell with red dot. Centre: "Current Balance", big amount (sum of all wallets in base currency), small pill "+UGX 78,400 than last week".
+1. **Blue gradient header**: avatar (or initials), month selector pill ("October 2026 ▾"), notification bell with red dot. Centre: "Current Balance", big amount (sum of all wallets in base currency), small pill "+UGX 78,400 than last week".
 2. **Your Money** card row: Income and Expenses cards for the selected month (icon tile, label with info icon, amount).
 3. **Insight bar** (black pill): Pro users see "Your insight is ready ›" when a new digest exists. Free users see "Get insights with Pro ›" which opens the paywall.
 4. **Transactions** list grouped by day ("Monday, 12 October 2026 · Total UGX 295,776"), with filter chip ("For the period") and pin/history icons. Each row: category icon tile, title (note or category), sub-line with wallet chip and tag/person chips, amount right-aligned (red for expense, green for income), wallet balance after it in grey below.
@@ -148,7 +148,7 @@ Follow the My Plan inspiration:
 - Further sections: **Recurring bills** (next due date), **Debts & loans** (who owes whom), **Savings groups/SACCO**.
 
 ### 5.6 Settings (`/(tabs)/settings`)
-Follow the Settings inspiration: violet **MeLedger Pro** banner at the top (sparkle tile, "Pro" badge, one-line pitch, chevron) for free users; for Pro users it shows plan status. Then grouped rows (icon tile + label + trailing control):
+Follow the Settings inspiration: blue **MeLedger Pro** banner at the top (sparkle tile, "Pro" badge, one-line pitch, chevron) for free users; for Pro users it shows plan status. Then grouped rows (icon tile + label + trailing control):
 
 **Preferences**: General currency (pill "UGX"), Categories ›, Wallets ›, Reminders (toggle), Voice & input ›, Language (English / Luganda beta — Luganda requires Pro).
 **AI & advisor** (Pro): AI parsing (toggle; off = local parser only), Advisor tone (Gentle / Direct), Weekly digest day, Spoken replies (toggle).
@@ -157,7 +157,7 @@ Follow the Settings inspiration: violet **MeLedger Pro** banner at the top (spar
 **About**: Help, Privacy policy, Version.
 
 ### 5.7 Paywall (`/paywall`, modal)
-Follow the Subscription inspiration: close button, sparkle icon in a violet circle, "Unlock all of MeLedger", one-line subtitle, feature list with coloured Material icons:
+Follow the Subscription inspiration: close button, sparkle icon in a blue circle, "Unlock all of MeLedger", one-line subtitle, feature list with coloured Material icons:
 AI voice parsing for multi-item entries · Personal finance advisor & weekly insights · Ask questions about your money · Cloud sync & backup across devices · Luganda voice input · Monthly PDF reports.
 Plan options: **Yearly** (highlighted, "Best value" badge) and **Monthly** in UGX. "Subscribe now →" button.
 **Payment is simulated**: if the user has no account, route to sign-up first; then show a fake checkout sheet (mobile money number field, "Pay" button, 2-second loading), call `POST /api/subscription/simulate`, which writes an active subscription row. Make the provider pluggable (`PaymentProvider` interface with `SimulatedProvider`) for a later real integration.

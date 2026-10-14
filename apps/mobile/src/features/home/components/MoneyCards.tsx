@@ -96,8 +96,6 @@ const styles = StyleSheet.create({
   details: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     backgroundColor: lightColors.surface,
     borderRadius: radius.pill,
     paddingLeft: spacing.md,
@@ -109,11 +107,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: lightColors.surface,
     borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     padding: spacing.lg,
     gap: spacing.sm,
-    elevation: 1,
   },
   tile: {
     width: 44,

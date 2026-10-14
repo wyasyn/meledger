@@ -9,7 +9,7 @@ export interface TabSpec {
   activeIcon: IconName;
 }
 
-/** Bottom bar items keyed by route name. The mic FAB sits between Report and Plan. */
+/** Bottom bar items keyed by route name. The mic sits in its own circle right of the pill. */
 export const TABS: Record<string, TabSpec> = {
   index: { label: 'Home', icon: 'home-outline', activeIcon: 'home' },
   report: { label: 'Report', icon: 'chart-box-outline', activeIcon: 'chart-box' },

@@ -20,7 +20,7 @@ export default function SettingsScreen() {
           android_ripple={{ color: lightColors.primaryContainer }}
           style={styles.row}
         >
-          <IconTile icon="wallet-outline" color="violet" size={40} />
+          <IconTile icon="wallet-outline" color="lime" size={40} />
           <Text variant="bodyLarge" style={styles.flex}>
             Wallets
           </Text>
@@ -39,8 +39,6 @@ const styles = StyleSheet.create({
   group: {
     backgroundColor: lightColors.surface,
     borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     overflow: 'hidden',
   },
   row: {

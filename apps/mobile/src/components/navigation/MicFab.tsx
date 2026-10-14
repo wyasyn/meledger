@@ -13,11 +13,12 @@ interface MicFabProps {
   onPressOut?: () => void;
 }
 
-const SIZE = 60;
+/** Diameter of the mic circle; the tab pill beside it matches this height. */
+export const MIC_FAB_SIZE = 64;
 
 export function MicFab({ onPress, onLongPress, onPressOut }: MicFabProps) {
   return (
-    <View style={styles.glow}>
+    <View style={styles.circle}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Log by voice"
@@ -35,24 +36,27 @@ export function MicFab({ onPress, onLongPress, onPressOut }: MicFabProps) {
         android_ripple={{ color: 'rgba(255,255,255,0.3)', borderless: false }}
         style={styles.fab}
       >
-        <MaterialIcons name="mic" size={28} color={lightColors.onPrimary} />
+        <MaterialIcons name="mic" size={28} color={lightColors.surface} />
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  glow: {
-    marginTop: -SIZE / 2 - 12,
-    width: SIZE,
-    height: SIZE,
-    borderRadius: SIZE / 2,
-    backgroundColor: lightColors.primary,
-    elevation: 10,
-    shadowColor: lightColors.primary,
-    borderWidth: 4,
-    borderColor: lightColors.primaryContainer,
+  circle: {
+    width: MIC_FAB_SIZE,
+    height: MIC_FAB_SIZE,
+    borderRadius: MIC_FAB_SIZE / 2,
+    // Near-black like the Budget Buddy mic, at the user's request.
+    backgroundColor: lightColors.onSurface,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+  },
+  // Clips the ripple to the circle; the shadow stays on the unclipped parent.
+  fab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: MIC_FAB_SIZE / 2,
     overflow: 'hidden',
   },
-  fab: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

@@ -1,6 +1,6 @@
 /** Category palette keys from the design tokens (build prompt section 4). */
 export const CATEGORY_COLORS = {
-  violet: '#8B5CF6',
+  lime: '#65A30D',
   blue: '#2E9BF0',
   green: '#22C55E',
   orange: '#F97316',
@@ -34,7 +34,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Fixed',
     icon: 'home-city',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '391f3b58-568b-4e13-b8c3-3eb336e65453',
@@ -42,7 +42,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Fixed',
     icon: 'flash',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: 'd4a84517-c3a0-406d-b9fd-9dc351ff8881',
@@ -50,7 +50,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Fixed',
     icon: 'water',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '3c75daa5-49e2-4103-add1-5361fb80208e',
@@ -58,7 +58,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Fixed',
     icon: 'gas-cylinder',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '1f734bbd-6ada-4663-a20c-0a72ea0d60a5',
@@ -66,7 +66,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Fixed',
     icon: 'wifi',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '585207d1-19ab-42ef-a10d-87f5499b19a8',
@@ -74,7 +74,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Fixed',
     icon: 'cellphone',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '3560ec88-7b1d-459f-886e-a1033988ed3d',
@@ -298,7 +298,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Family & Education',
     icon: 'baby-carriage',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: 'c655124a-88ab-48d8-9dab-e55a3822fe01',
@@ -306,7 +306,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Family & Education',
     icon: 'school',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '286e0bb8-314c-4ba3-a94a-f0c867993f43',
@@ -314,7 +314,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Family & Education',
     icon: 'book-open-variant',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '2169d71d-1d8f-436a-b9b3-f3a9694eca69',
@@ -322,7 +322,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Family & Education',
     icon: 'pencil-ruler',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: '372d6d65-7504-4fe6-b13e-d4ae0f9922fd',
@@ -330,7 +330,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     kind: 'expense',
     group: 'Family & Education',
     icon: 'certificate',
-    color: 'violet',
+    color: 'lime',
   },
   {
     id: 'de9c056b-afda-4071-8d91-8708d42cd729',

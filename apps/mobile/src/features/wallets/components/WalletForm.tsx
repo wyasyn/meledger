@@ -71,6 +71,7 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
                 icon={WALLET_TYPE_META[type].icon}
                 selected={values.type === type}
                 showSelectedCheck={false}
+                style={values.type === type ? styles.chipSelected : styles.chip}
                 onPress={() => {
                   set('type', type);
                   set('color', WALLET_TYPE_META[type].color);
@@ -150,6 +151,9 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  // Flat chips on the white card: grey when off, light blue when selected.
+  chip: { backgroundColor: lightColors.background },
+  chipSelected: { backgroundColor: lightColors.primaryContainer },
   swatch: {
     width: 36,
     height: 36,

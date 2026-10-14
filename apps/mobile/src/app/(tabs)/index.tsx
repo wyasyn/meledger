@@ -5,7 +5,9 @@ import { setStatusBarStyle } from 'expo-status-bar';
 import { useCallback, useMemo, useRef } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TAB_BAR_HEIGHT } from '@/components/navigation/TabBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
@@ -23,6 +25,7 @@ import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData'
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const data = useLedgerData();
   const ledger = useLedger(data);
   const period = useHomeStore((s) => s.period);
@@ -150,7 +153,8 @@ export default function HomeScreen() {
             }
           />
         }
-        contentContainerStyle={styles.content}
+        // Clears the floating tab bar.
+        contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_HEIGHT + spacing.xxl }}
       />
       <PeriodSheet
         ref={periodSheet}
@@ -166,7 +170,6 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
-  content: { paddingBottom: 120 },
   sheet: {
     marginTop: -spacing.xxl,
     borderTopLeftRadius: 24,

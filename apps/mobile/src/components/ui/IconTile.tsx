@@ -9,7 +9,7 @@ export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 interface IconTileProps {
   icon: string;
-  /** Palette key (e.g. "violet") or hex colour. */
+  /** Palette key (e.g. "lime") or hex colour. */
   color: string;
   size?: number;
   round?: boolean;

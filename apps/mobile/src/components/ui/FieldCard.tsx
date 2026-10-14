@@ -47,8 +47,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: lightColors.surface,
     borderRadius: radius.small + 4,
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     padding: spacing.lg,
     gap: spacing.sm,
     overflow: 'hidden',

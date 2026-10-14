@@ -79,8 +79,6 @@ const styles = StyleSheet.create({
   group: {
     backgroundColor: lightColors.surface,
     borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     overflow: 'hidden',
   },
   row: {

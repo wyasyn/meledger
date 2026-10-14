@@ -9,7 +9,7 @@ export const WALLET_TYPE_META: Record<
   cash: { label: 'Cash', icon: 'cash', color: 'green' },
   mobile_money: { label: 'Mobile money', icon: 'cellphone', color: 'amber' },
   bank: { label: 'Bank', icon: 'bank', color: 'blue' },
-  card: { label: 'Card', icon: 'credit-card-outline', color: 'violet' },
+  card: { label: 'Card', icon: 'credit-card-outline', color: 'lime' },
   savings: { label: 'Savings', icon: 'piggy-bank', color: 'teal' },
 };
 

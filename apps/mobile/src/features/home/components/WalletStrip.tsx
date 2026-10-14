@@ -72,15 +72,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs + 2,
     borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     backgroundColor: lightColors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  chipSelected: {
-    backgroundColor: lightColors.primaryContainer,
-    borderColor: lightColors.primaryContainer,
-  },
+  chipSelected: { backgroundColor: lightColors.primaryContainer },
   labelSelected: { color: lightColors.onPrimaryContainer },
 });

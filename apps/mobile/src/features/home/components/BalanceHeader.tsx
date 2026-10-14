@@ -23,7 +23,7 @@ interface BalanceHeaderProps {
   weekChange: number;
 }
 
-/** Violet gradient header with month selector (shows any Home period), current balance and change vs last week. */
+/** Blue gradient header with month selector (shows any Home period), current balance and change vs last week. */
 export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
   const insets = useSafeAreaInsets();
   const period = useHomeStore((s) => s.period);

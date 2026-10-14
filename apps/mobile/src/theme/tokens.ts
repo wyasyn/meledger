@@ -1,6 +1,6 @@
 /** Design tokens from docs/BUILD_PROMPT.md section 4. */
 export const palette = {
-  violet: '#8B5CF6',
+  lime: '#65A30D',
   blue: '#2E9BF0',
   green: '#22C55E',
   orange: '#F97316',
@@ -12,7 +12,7 @@ export const palette = {
 
 export const categoryColors = Object.values(palette);
 
-/** Resolves a stored palette key ("violet") to its hex value; hex values pass through. */
+/** Resolves a stored palette key ("lime") to its hex value; hex values pass through. */
 export const paletteColor = (keyOrHex: string): string =>
   keyOrHex.startsWith('#')
     ? keyOrHex
@@ -41,11 +41,11 @@ export interface ColorTokens {
 }
 
 export const lightColors: ColorTokens = {
-  primary: '#8B5CF6',
+  primary: '#0067EE',
   onPrimary: '#FFFFFF',
-  primaryContainer: '#EDE7FE',
-  onPrimaryContainer: '#4C1D95',
-  headerGradient: ['#A78BFA', '#8B5CF6'],
+  primaryContainer: '#E4F0FF',
+  onPrimaryContainer: '#003A8C',
+  headerGradient: ['#2684FC', '#0067EE'],
   background: '#F4F4F5',
   surface: '#FFFFFF',
   onSurface: '#111111',
@@ -64,11 +64,11 @@ export const lightColors: ColorTokens = {
 
 /** Same roles for the dark theme. Not switched on until milestone 8. */
 export const darkColors: ColorTokens = {
-  primary: '#A78BFA',
-  onPrimary: '#1E1035',
-  primaryContainer: '#3B2A63',
-  onPrimaryContainer: '#EDE7FE',
-  headerGradient: ['#7C3AED', '#5B21B6'],
+  primary: '#5A9BFF',
+  onPrimary: '#001A40',
+  primaryContainer: '#0B2E5C',
+  onPrimaryContainer: '#E4F0FF',
+  headerGradient: ['#1E64D0', '#0A3F8F'],
   background: '#0B0B0D',
   surface: '#18181B',
   onSurface: '#F4F4F5',

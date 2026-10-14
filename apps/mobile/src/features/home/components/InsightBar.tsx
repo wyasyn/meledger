@@ -35,11 +35,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md + 2,
-    // Soft violet glow
+    // Soft blue glow
     elevation: 6,
     shadowColor: lightColors.primary,
-    borderWidth: 1,
-    borderColor: 'rgba(139,92,246,0.35)',
   },
   text: { flex: 1, color: '#FFFFFF' },
 });

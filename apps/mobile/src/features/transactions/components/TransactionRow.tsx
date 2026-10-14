@@ -123,8 +123,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     backgroundColor: lightColors.surface,
     borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: lightColors.outline,
     overflow: 'hidden',
   },
   middle: { flex: 1, gap: spacing.xs },

@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TAB_BAR_HEIGHT } from '@/components/navigation/TabBar';
 import { lightColors, spacing } from '@/theme/tokens';
 
 interface ScreenProps {
@@ -16,7 +17,14 @@ export function Screen({ title, children }: ScreenProps) {
   return (
     <ScrollView
       style={styles.root}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
+      contentContainerStyle={[
+        styles.content,
+        {
+          paddingTop: insets.top + spacing.lg,
+          // Clears the floating tab bar.
+          paddingBottom: insets.bottom + TAB_BAR_HEIGHT + spacing.xxl,
+        },
+      ]}
     >
       <Text variant="titleLarge" accessibilityRole="header">
         {title}

@@ -80,12 +80,16 @@ function EditWallet({ wallet, isMain, isLastActive }: EditWalletProps) {
       footer={
         <View style={styles.footer}>
           {!isMain && !wallet.archived ? (
-            <Button mode="outlined" icon="star-outline" onPress={() => setMainWallet(wallet.id)}>
+            <Button
+              mode="contained-tonal"
+              icon="star-outline"
+              onPress={() => setMainWallet(wallet.id)}
+            >
               Make main wallet
             </Button>
           ) : null}
           <Button
-            mode="outlined"
+            mode="contained-tonal"
             icon={wallet.archived ? 'archive-arrow-up-outline' : 'archive-outline'}
             disabled={isLastActive}
             onPress={() => setWalletArchived(wallet.id, !wallet.archived)}
