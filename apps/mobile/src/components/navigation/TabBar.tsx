@@ -102,7 +102,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
           })}
         </View>
         <MicFab
-          onPress={openVoiceSheet}
+          onPress={() => openVoiceSheet()}
           onLongPress={() => {
             setHolding(true);
             openVoiceSheet();

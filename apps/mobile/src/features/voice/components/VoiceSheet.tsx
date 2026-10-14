@@ -13,7 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatMoney, localParse, type ParseResult } from '@meledger/shared';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -43,6 +43,7 @@ import {
   answerQuestion,
   blankDraft,
   buildParseContext,
+  draftFromInput,
   toDraft,
   type VoiceDraft,
 } from '../logic';
@@ -62,8 +63,7 @@ const THINK_MS = 600;
 /** What the sheet shows after listening. */
 type Outcome =
   | { kind: 'none' }
-  /** `typed`: opened with the keyboard button, so it saves as a keyboard entry. */
-  | { kind: 'review'; drafts: VoiceDraft[]; typed?: boolean }
+  | { kind: 'review'; drafts: VoiceDraft[]; mode: 'voice' | 'typed' | 'edit' }
   | { kind: 'answer'; answer: Answer }
   | { kind: 'notice'; title: string; body: string; typeIt?: boolean };
 
@@ -86,11 +86,15 @@ const COMING_SOON: Record<string, { title: string; body: string }> = {
   },
 };
 
-/** Mounted once in the root layout; the tab bar "+" opens it with openVoiceSheet(). */
+/**
+ * Mounted once in the root layout. openVoiceSheet() opens it listening; openEntrySheet(id)
+ * opens an existing entry as an editable card, straight at full height.
+ */
 export function VoiceSheetHost() {
   const insets = useSafeAreaInsets();
   const ref = useRef<BottomSheetModal>(null);
   const requestId = useVoiceSheet((s) => s.requestId);
+  const editing = useVoiceSheet((s) => s.request.mode === 'edit');
 
   useEffect(() => {
     if (requestId > 0) ref.current?.present();
@@ -119,6 +123,7 @@ export function VoiceSheetHost() {
       ref={ref}
       name="voice"
       snapPoints={[`${HALF * 100}%`, '100%']}
+      index={editing ? 1 : 0}
       enableDynamicSizing={false}
       enablePanDownToClose
       // Dragging down or tapping outside must also stop the microphone.
@@ -163,6 +168,46 @@ function VoicePanel() {
   const data = useLedgerData();
   const ledger = useLedger(data);
   const [outcome, setOutcome] = useState<Outcome>({ kind: 'none' });
+  // What this opening is for; fixed for the sheet's lifetime (it unmounts on dismiss).
+  const [request] = useState(() => useVoiceSheet.getState().request);
+  const editing = request.mode === 'edit';
+
+  // The wallet for lines that name none: Home's wallet filter when it opened with one.
+  const preferredWallet = useMemo(() => {
+    if (!data) return null;
+    const asked = request.mode === 'listen' ? request.walletId : null;
+    const usable = data.wallets.some((w) => w.id === asked && !w.archived);
+    return usable ? asked : mainWalletId(data.wallets);
+  }, [data, request]);
+
+  // Editing opens on the entry's card: derived from the entry until the first change, which
+  // moves it into state. Read once, so live updates never reset what is being edited.
+  const loaded = data !== undefined;
+  const editOutcome = useMemo((): Outcome | null => {
+    if (request.mode !== 'edit' || !data) return null;
+    const tx = data.transactions.find((t) => t.id === request.transactionId);
+    if (!tx) {
+      return {
+        kind: 'notice',
+        title: 'This entry no longer exists',
+        body: 'It may have been deleted.',
+      };
+    }
+    const draft = draftFromInput(tx.id, {
+      type: tx.type,
+      amount: tx.amount,
+      walletId: tx.walletId,
+      toWalletId: tx.toWalletId,
+      categoryId: tx.categoryId,
+      occurredAt: tx.occurredAt,
+      note: tx.note ?? '',
+      feeAmount: tx.feeAmount,
+      tagIds: data.tagIdsByTransaction.get(tx.id) ?? [],
+    });
+    return { kind: 'review', drafts: [draft], mode: 'edit' };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request, loaded]);
+  const shown: Outcome = outcome.kind === 'none' && editOutcome ? editOutcome : outcome;
 
   const listening = status === 'listening' || status === 'starting';
   // Between the end of listening and the parsed result, the orb shows it is working.
@@ -172,11 +217,11 @@ function VoicePanel() {
 
   const outcomeFor = (result: ParseResult, now: Date): Outcome => {
     if (result.intent === 'log' && result.items.length > 0 && data) {
-      const main = mainWalletId(data.wallets);
       const stamp = Date.now();
       return {
         kind: 'review',
-        drafts: result.items.map((item, i) => toDraft(item, `${stamp}-${i}`, main, now)),
+        mode: 'voice',
+        drafts: result.items.map((item, i) => toDraft(item, `${stamp}-${i}`, preferredWallet, now)),
       };
     }
     if (result.intent === 'question') {
@@ -218,7 +263,13 @@ function VoicePanel() {
     const timer = setTimeout(async () => {
       const now = new Date();
       const vocabulary = await loadVocabulary();
-      const ctx = buildParseContext(data.wallets, data.categories, vocabulary, now);
+      const ctx = buildParseContext(
+        data.wallets,
+        data.categories,
+        vocabulary,
+        now,
+        preferredWallet,
+      );
       const result = localParse(transcript, ctx);
       if (!cancelled) setOutcome(outcomeFor(result, now));
     }, THINK_MS);
@@ -242,8 +293,9 @@ function VoicePanel() {
     if (result === 'denied') showPermissionSheet('microphone');
   };
 
-  // Start listening as soon as the sheet opens.
+  // Start listening as soon as the sheet opens (not when it opens to edit an entry).
   useEffect(() => {
+    if (editing) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     begin();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -275,13 +327,8 @@ function VoicePanel() {
   const typeInstead = () => {
     if (!data) return;
     cancel();
-    const draft = blankDraft(
-      String(Date.now()),
-      mainWalletId(data.wallets),
-      new Date(),
-      transcript,
-    );
-    setOutcome({ kind: 'review', drafts: [draft], typed: true });
+    const draft = blankDraft(String(Date.now()), preferredWallet, new Date(), transcript);
+    setOutcome({ kind: 'review', drafts: [draft], mode: 'typed' });
   };
 
   // What shows is the sheet container's height minus the sheet's live top position. At full
@@ -298,6 +345,11 @@ function VoicePanel() {
 
   const canvasStyle = useAnimatedStyle(() => ({
     height: containerHeight.get() - insets.top - handleHeight.get(),
+  }));
+  // The cards fill only the visible part of the sheet, so while it is dragged or resting at the
+  // lower height the Save bar stays at the visible bottom and the list just gets shorter.
+  const reviewStyle = useAnimatedStyle(() => ({
+    height: Math.max(0, visible.get() - handleHeight.get()),
   }));
   const controlsStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: controlsTop.get() }],
@@ -322,10 +374,10 @@ function VoicePanel() {
   }));
 
   const heading =
-    outcome.kind === 'answer'
-      ? outcome.answer.text
-      : outcome.kind === 'notice'
-        ? outcome.title
+    shown.kind === 'answer'
+      ? shown.answer.text
+      : shown.kind === 'notice'
+        ? shown.title
         : transcript ||
           (status === 'error'
             ? "I couldn't hear that"
@@ -333,10 +385,10 @@ function VoicePanel() {
               ? "I'm listening…"
               : 'How can I help?');
   const hint =
-    outcome.kind === 'answer' || (outcome.kind === 'notice' && outcome.typeIt)
+    shown.kind === 'answer' || (shown.kind === 'notice' && shown.typeIt)
       ? `You said: "${transcript}"`
-      : outcome.kind === 'notice'
-        ? outcome.body
+      : shown.kind === 'notice'
+        ? shown.body
         : status === 'error'
           ? (error?.message ?? 'Something went wrong. Try again.')
           : listening
@@ -345,16 +397,17 @@ function VoicePanel() {
               ? 'Working it out…'
               : 'Say something like "lunch 12k cash", or tap the keyboard to type';
 
-  if (outcome.kind === 'review' && data) {
+  if (shown.kind === 'review' && data) {
     return (
       <BottomSheetView style={styles.root}>
-        <Animated.View style={[styles.review, canvasStyle]}>
+        <Animated.View style={[styles.review, reviewStyle]}>
           <VoiceReview
-            transcript={outcome.typed ? '' : transcript}
-            typed={outcome.typed ?? false}
-            drafts={outcome.drafts}
+            transcript={shown.mode === 'voice' ? transcript : ''}
+            mode={shown.mode}
+            editId={request.mode === 'edit' ? request.transactionId : undefined}
+            drafts={shown.drafts}
             data={data}
-            onDrafts={(drafts) => setOutcome({ ...outcome, drafts })}
+            onDrafts={(drafts) => setOutcome({ ...shown, drafts })}
             onDone={close}
           />
         </Animated.View>
@@ -396,9 +449,9 @@ function VoicePanel() {
             <Text variant="caption" tone="muted" align="center">
               {hint}
             </Text>
-            {outcome.kind === 'answer' && outcome.answer.rows.length > 0 ? (
+            {shown.kind === 'answer' && shown.answer.rows.length > 0 ? (
               <Animated.View entering={FadeInDown.duration(260)} style={styles.rows}>
-                {outcome.answer.rows.map((row) => (
+                {shown.answer.rows.map((row) => (
                   <View key={row.label} style={styles.answerRow}>
                     <Text variant="body" style={styles.flex} numberOfLines={1}>
                       {row.label}
@@ -408,7 +461,7 @@ function VoicePanel() {
                 ))}
               </Animated.View>
             ) : null}
-            {outcome.kind === 'notice' && outcome.typeIt ? (
+            {shown.kind === 'notice' && shown.typeIt ? (
               <Animated.View entering={FadeInDown.duration(260)} style={styles.result}>
                 <Button
                   label="Type it in"

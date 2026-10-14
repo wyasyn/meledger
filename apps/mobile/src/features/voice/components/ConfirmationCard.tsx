@@ -53,6 +53,8 @@ interface ConfirmationCardProps {
   onPick: (field: PickerField) => void;
   /** Opens the keyboard on the amount (a typed entry starts there). */
   autoFocusAmount?: boolean;
+  /** Replaces "New entry" / "Entry 1 of 2", e.g. "Edit entry". */
+  title?: string;
 }
 
 /**
@@ -70,6 +72,7 @@ export function ConfirmationCard({
   onRemove,
   onPick,
   autoFocusAmount = false,
+  title,
 }: ConfirmationCardProps) {
   const { input, parsed } = draft;
   const transfer = input.type === 'transfer';
@@ -97,7 +100,7 @@ export function ConfirmationCard({
     set(patch);
   };
 
-  const label = total > 1 ? `Entry ${index + 1} of ${total}` : 'New entry';
+  const label = title ?? (total > 1 ? `Entry ${index + 1} of ${total}` : 'New entry');
 
   if (!draft.savable) {
     return (

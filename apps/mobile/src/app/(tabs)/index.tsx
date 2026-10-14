@@ -160,7 +160,9 @@ export default function HomeScreen() {
                 ? 'Nothing in this wallet for this period.'
                 : 'Log what you spend and earn to see it here.'
             }
-            action={<Button label="Add an entry" icon="mic" onPress={openVoiceSheet} />}
+            action={
+              <Button label="Add an entry" icon="mic" onPress={() => openVoiceSheet(walletId)} />
+            }
           />
         }
         // Clears the floating tab bar.

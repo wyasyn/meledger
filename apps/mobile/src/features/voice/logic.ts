@@ -35,6 +35,8 @@ export function buildParseContext(
   categories: readonly ContextCategory[],
   vocabulary: ParseContext['vocabulary'],
   now: Date,
+  /** Wallet for lines that name none; defaults to the main (first active) wallet. */
+  defaultWalletId?: string | null,
 ): ParseContext {
   const active = wallets.filter((w) => !w.archived);
   return {
@@ -42,7 +44,7 @@ export function buildParseContext(
     wallets: active.map(({ id, name, type, provider }) => ({ id, name, type, provider })),
     categories: categories.map(({ id, name, kind }) => ({ id, name, kind })),
     vocabulary,
-    defaultWalletId: active[0]?.id ?? null,
+    defaultWalletId: defaultWalletId ?? active[0]?.id ?? null,
   };
 }
 
@@ -87,31 +89,48 @@ export function toDraft(
   };
 }
 
+/**
+ * A card for values that were not heard: a typed entry or an existing one being edited. Nothing
+ * is flagged as uncertain and nothing is learned from it.
+ */
+export function draftFromInput(key: string, input: TransactionInput): VoiceDraft {
+  return {
+    key,
+    input,
+    heardUsd: null,
+    savable: true,
+    parsed: {
+      type: input.type,
+      amount: input.amount || null,
+      currency: 'UGX',
+      walletId: input.walletId || null,
+      toWalletId: input.toWalletId,
+      categoryId: input.categoryId,
+      date: isoDay(input.occurredAt),
+      note: input.note,
+      feeAmount: input.feeAmount,
+      person: null,
+      debt: null,
+      phrase: '',
+      confidence: { amount: 1, type: 1, wallet: 1, category: 1, date: 1 },
+      uncertain: [],
+    },
+  };
+}
+
 /** An empty card for typing an entry in the voice sheet; `note` carries anything already said. */
-export function blankDraft(
-  key: string,
-  mainWalletId: string | null,
-  now: Date,
-  note = '',
-): VoiceDraft {
-  const item: ParsedItem = {
+export function blankDraft(key: string, walletId: string | null, now: Date, note = ''): VoiceDraft {
+  return draftFromInput(key, {
     type: 'expense',
-    amount: null,
-    currency: 'UGX',
-    walletId: mainWalletId,
+    amount: 0,
+    walletId: walletId ?? '',
     toWalletId: null,
     categoryId: null,
-    date: isoDay(now),
+    occurredAt: now,
     note: note.slice(0, 200),
     feeAmount: 0,
-    person: null,
-    debt: null,
-    // No heard words, so nothing is learned from a typed entry.
-    phrase: '',
-    confidence: { amount: 1, type: 1, wallet: 1, category: 1, date: 1 },
-    uncertain: [],
-  };
-  return toDraft(item, key, mainWalletId, now);
+    tagIds: [],
+  });
 }
 
 export interface Learning {

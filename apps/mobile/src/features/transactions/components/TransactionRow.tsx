@@ -1,5 +1,4 @@
 import { formatAmount, formatMoney } from '@meledger/shared';
-import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
@@ -7,6 +6,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import type { Category, Tag, Transaction, Wallet } from '@/db/schema';
+import { openEntrySheet } from '@/features/voice/store';
 import { lightColors, paletteColor, radius, shadow, spacing } from '@/theme/tokens';
 
 import { TagChip } from './TagChip';
@@ -60,7 +60,7 @@ export function TransactionRow({
 
   return (
     <PressableScale
-      onPress={() => router.push({ pathname: '/transaction/[id]', params: { id: tx.id } })}
+      onPress={() => openEntrySheet(tx.id)}
       scaleTo={0.98}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}

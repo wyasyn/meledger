@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { DatePickerSheet } from '@/components/ui/DatePickerSheet';
 import { Icon } from '@/components/ui/Icon';
+import { IconButton } from '@/components/ui/IconButton';
 import type { SheetRef } from '@/components/ui/Sheet';
 import { SheetKeyboardScrollView } from '@/components/ui/SheetKeyboardScrollView';
 import { Text } from '@/components/ui/Text';
@@ -15,7 +16,12 @@ import { showSnackbar } from '@/features/feedback/snackbar';
 import { CategoryPickerSheet } from '@/features/transactions/components/CategoryPickerSheet';
 import { TagPickerSheet } from '@/features/transactions/components/TagPickerSheet';
 import { WalletPickerSheet } from '@/features/transactions/components/WalletPickerSheet';
-import { createTransaction, deleteTransaction } from '@/features/transactions/repo';
+import {
+  createTransaction,
+  deleteTransaction,
+  restoreTransaction,
+  updateTransaction,
+} from '@/features/transactions/repo';
 import type { LedgerData } from '@/features/transactions/useLedgerData';
 import { mainWalletId } from '@/features/wallets/logic';
 import { lightColors, radius, spacing } from '@/theme/tokens';
@@ -28,10 +34,14 @@ import { ConfirmationCard, type DraftErrors, type PickerField } from './Confirma
 const FOOTER = 86;
 
 interface VoiceReviewProps {
-  /** What was said; empty for a typed entry. */
+  /** What was said; empty for a typed or edited entry. */
   transcript: string;
-  /** Opened with the keyboard button: saves as a keyboard entry and learns nothing. */
-  typed: boolean;
+  /**
+   * `voice`: parsed from speech (saved with the transcript, corrections are learned).
+   * `typed`: the keyboard button (a keyboard entry). `edit`: the existing entry `editId`.
+   */
+  mode: 'voice' | 'typed' | 'edit';
+  editId?: string;
   drafts: VoiceDraft[];
   data: LedgerData;
   onDrafts: (drafts: VoiceDraft[]) => void;
@@ -53,7 +63,8 @@ function errorsFor(draft: VoiceDraft): DraftErrors {
 /** The confirmation cards for what was said, with Save all and Discard (build prompt section 5.2). */
 export function VoiceReview({
   transcript,
-  typed,
+  mode,
+  editId,
   drafts,
   data,
   onDrafts,
@@ -103,17 +114,24 @@ export function VoiceReview({
       return;
     }
     setSaving(true);
+    if (mode === 'edit' && editId && savable[0]) {
+      await updateTransaction(editId, savable[0].input);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showSnackbar({ message: 'Entry updated' });
+      onDone();
+      return;
+    }
     const ids: string[] = [];
     for (const d of savable) {
       const c = d.parsed.confidence;
       const confidence = Math.min(c.amount, c.type, c.wallet, c.category, c.date);
       ids.push(
-        typed
+        mode === 'typed'
           ? await createTransaction(d.input, 'keyboard')
           : await createTransaction(d.input, 'voice', { transcript, confidence }),
       );
     }
-    if (!typed) await learn(savable.flatMap(learningsFor));
+    if (mode === 'voice') await learn(savable.flatMap(learningsFor));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     showSnackbar({
       message: ids.length === 1 ? 'Saved 1 entry' : `Saved ${ids.length} entries`,
@@ -124,6 +142,17 @@ export function VoiceReview({
           for (const id of ids) deleteTransaction(id);
         },
       },
+    });
+    onDone();
+  };
+
+  const deleteEntry = async () => {
+    if (!editId) return;
+    await deleteTransaction(editId);
+    showSnackbar({
+      message: 'Entry deleted',
+      duration: 5000,
+      action: { label: 'Undo', onPress: () => void restoreTransaction(editId) },
     });
     onDone();
   };
@@ -159,7 +188,8 @@ export function VoiceReview({
             onChange={update}
             onRemove={() => remove(d.key)}
             onPick={(field) => pick(d.key, field)}
-            autoFocusAmount={typed}
+            autoFocusAmount={mode === 'typed'}
+            title={mode === 'edit' ? 'Edit entry' : undefined}
           />
         ))}
       </SheetKeyboardScrollView>
@@ -168,13 +198,25 @@ export function VoiceReview({
         offset={{ closed: 0, opened: insets.bottom }}
         style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
       >
-        <Button
-          label="Discard"
-          variant="secondary"
-          onPress={onDone}
-          disabled={saving}
-          style={styles.flex}
-        />
+        {mode === 'edit' ? (
+          <IconButton
+            icon="trash"
+            label="Delete entry"
+            color={lightColors.expense}
+            variant="surface"
+            size={54}
+            onPress={deleteEntry}
+            disabled={saving}
+          />
+        ) : (
+          <Button
+            label="Discard"
+            variant="secondary"
+            onPress={onDone}
+            disabled={saving}
+            style={styles.flex}
+          />
+        )}
         <Button
           label={savable.length > 1 ? 'Save all' : 'Save'}
           onPress={saveAll}

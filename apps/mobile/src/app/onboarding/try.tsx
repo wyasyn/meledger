@@ -18,7 +18,7 @@ export default function TryStep() {
         icon="mic"
         variant="secondary"
         block
-        onPress={openVoiceSheet}
+        onPress={() => openVoiceSheet()}
       />
     </OnboardingStep>
   );
