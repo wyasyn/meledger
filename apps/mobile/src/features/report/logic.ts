@@ -261,3 +261,17 @@ export function distinctColors<R extends { color: string }>(rows: readonly R[]):
     return color === row.color ? row : { ...row, color };
   });
 }
+
+/**
+ * Sweep angles (degrees, summing to 360) for donut segments. Every segment gets at least
+ * `minDeg`, so a tiny category still shows as a visible slice; the room comes from the bigger
+ * segments in proportion to their size.
+ */
+export function segmentAngles(shares: readonly number[], minDeg: number): number[] {
+  const raw = shares.map((s) => s * 360);
+  if (raw.length * minDeg >= 360) return raw.map(() => 360 / raw.length);
+  const small = raw.map((a) => a < minDeg);
+  const needed = raw.reduce((sum, a, i) => sum + (small[i] ? minDeg - a : 0), 0);
+  const bigTotal = raw.reduce((sum, a, i) => sum + (small[i] ? 0 : a), 0);
+  return raw.map((a, i) => (small[i] ? minDeg : a - (needed * a) / bigTotal));
+}

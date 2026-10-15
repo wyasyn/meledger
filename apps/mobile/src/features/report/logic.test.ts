@@ -7,6 +7,7 @@ import {
   changeIsGood,
   changeLabel,
   distinctColors,
+  segmentAngles,
   donutSegments,
   inRow,
   previousPeriod,
@@ -130,5 +131,17 @@ describe('distinctColors', () => {
       { color: 'green' },
     ]);
     expect(rows.map((r) => r.color)).toEqual(['green', 'blue', 'orange', 'pink']);
+  });
+});
+
+describe('segmentAngles', () => {
+  it('keeps tiny segments visible and still fills the ring', () => {
+    const angles = segmentAngles([0.995, 0.005], 20);
+    expect(angles[1]).toBe(20);
+    expect(angles[0]).toBeCloseTo(340);
+  });
+
+  it('leaves segments alone when all are big enough', () => {
+    expect(segmentAngles([0.5, 0.25, 0.25], 20)).toEqual([180, 90, 90]);
   });
 });

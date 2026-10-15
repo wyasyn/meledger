@@ -16,7 +16,7 @@ import Animated, {
 import { Text } from '@/components/ui/Text';
 import { lightColors, paletteColor, radius, spacing } from '@/theme/tokens';
 
-import type { DonutSegment } from '../logic';
+import { type DonutSegment, segmentAngles } from '../logic';
 
 interface DonutChartProps {
   segments: DonutSegment[];
@@ -97,9 +97,15 @@ export function DonutChart({ segments, total, label, size }: DonutChartProps) {
     progress.set(withTiming(1, { duration: 750, easing: Easing.out(Easing.cubic) }));
   }, [signature, progress]);
 
-  const arcs = segments.reduce<Arc[]>((list, segment) => {
+  // Smallest slice that still shows after its gap and rounded corners are taken off.
+  const cornerDeg = ((CORNER / ((outer + inner) / 2)) * 180) / Math.PI;
+  const angles = segmentAngles(
+    segments.map((s) => s.share),
+    gapDeg + cornerDeg * 2 + 6,
+  );
+  const arcs = segments.reduce<Arc[]>((list, segment, i) => {
     const from = list.at(-1)?.to ?? 0;
-    return [...list, { segment, from, to: from + segment.share * 360 }];
+    return [...list, { segment, from, to: from + angles[i]! }];
   }, []);
 
   const onPress = (e: GestureResponderEvent) => {
