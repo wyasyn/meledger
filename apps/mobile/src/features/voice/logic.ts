@@ -6,6 +6,7 @@ import {
   periodTotals,
   type LedgerTransaction,
   type QuestionPeriod,
+  SAVINGS_GROUP_CATEGORY_ID,
   type TransactionInput,
 } from '@meledger/shared';
 import { addDays, addMonths, addYears, format, startOfDay, startOfYear, subDays } from 'date-fns';
@@ -71,6 +72,42 @@ export interface VoiceDraft {
    * the repayment against it, and the category is the matching debt category.
    */
   debt: { kind: NonNullable<ParsedItem['debt']>; person: string } | null;
+  /**
+   * A payment to a savings group ("paid sacco 50k"): saved as a transfer into the group's wallet.
+   * Holds the active groups' wallet ids, the only choices for where it goes.
+   */
+  groupWalletIds: string[] | null;
+}
+
+/** An active savings group a spoken payment can go to. */
+export interface ContributionGroup {
+  name: string;
+  walletId: string;
+}
+
+/** Words that say "a savings group" without naming one. */
+const GROUP_WORDS = new Set(['sacco', 'vsla', 'chama', 'savings', 'group', 'contribution']);
+
+/**
+ * The group a spoken payment is for: the one named ("paid kireka sacco 50k"), or the only one.
+ * Null when there are several and none was named, so the card asks.
+ */
+export function matchGroup<G extends ContributionGroup>(
+  heard: string,
+  groups: readonly G[],
+): G | null {
+  const nameWords = (text: string) => words(text).filter((w) => !GROUP_WORDS.has(w));
+  const said = new Set(nameWords(heard));
+  let best: G | null = null;
+  let bestScore = 0;
+  for (const group of groups) {
+    const score = nameWords(group.name).filter((w) => said.has(w)).length;
+    if (score > bestScore) {
+      best = group;
+      bestScore = score;
+    }
+  }
+  return best ?? (groups.length === 1 ? groups[0]! : null);
 }
 
 /** Turns a parsed item into a card's starting values. The time of day is now, on the heard day. */
@@ -79,7 +116,29 @@ export function toDraft(
   key: string,
   mainWalletId: string | null,
   now: Date,
+  /** Active savings groups; a payment to the savings group category goes to one of them. */
+  groups: readonly ContributionGroup[] = [],
 ): VoiceDraft {
+  const groupWallets = new Set(groups.map((g) => g.walletId));
+  if (
+    item.type === 'expense' &&
+    !item.debt &&
+    item.categoryId === SAVINGS_GROUP_CATEGORY_ID &&
+    groups.length > 0 &&
+    !(item.walletId && groupWallets.has(item.walletId))
+  ) {
+    const group = matchGroup(`${item.note} ${item.phrase}`, groups);
+    const contribution: ParsedItem = {
+      ...item,
+      type: 'transfer',
+      toWalletId: group?.walletId ?? null,
+      categoryId: null,
+      note: group ? `${group.name} contribution` : item.note,
+      uncertain: item.uncertain.filter((f) => f !== 'category' && f !== 'type'),
+    };
+    return { ...toDraft(contribution, key, mainWalletId, now), groupWalletIds: [...groupWallets] };
+  }
+
   const [y, m, d] = item.date.split('-').map(Number) as [number, number, number];
   const occurredAt = new Date(now);
   occurredAt.setFullYear(y, m - 1, d);
@@ -92,6 +151,7 @@ export function toDraft(
     heardUsd: usd && item.amount ? item.amount / 100 : null,
     savable: true,
     debt,
+    groupWalletIds: null,
     input: {
       type: item.type,
       amount: usd ? 0 : (item.amount ?? 0),
@@ -121,6 +181,7 @@ export function draftFromInput(key: string, input: TransactionInput): VoiceDraft
     heardUsd: null,
     savable: true,
     debt: null,
+    groupWalletIds: null,
     parsed: {
       type: input.type,
       amount: input.amount || null,

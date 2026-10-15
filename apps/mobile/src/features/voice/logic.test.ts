@@ -74,6 +74,46 @@ describe('toDraft', () => {
     expect(draft.debt).toEqual({ kind: 'repaid_to_me', person: 'Musa' });
     expect(draft.input).toMatchObject({ type: 'income', categoryId: DEBT_CATEGORY_IDS.repaidToMe });
   });
+
+  describe('savings group payments', () => {
+    const kireka = { name: 'Kireka SACCO', walletId: 'kireka' };
+    const bweyo = { name: 'Bweyogerere VSLA', walletId: 'bweyo' };
+    const draftFor = (text: string, groups: (typeof kireka)[]) =>
+      toDraft(localParse(text, ctx).items[0]!, 'a', 'cash', now, groups);
+
+    it('become a contribution to the only group', () => {
+      const draft = draftFor('paid sacco 50k', [kireka]);
+      expect(draft.input).toMatchObject({
+        type: 'transfer',
+        amount: 50_000,
+        walletId: 'cash',
+        toWalletId: 'kireka',
+        categoryId: null,
+        note: 'Kireka SACCO contribution',
+      });
+      expect(draft.groupWalletIds).toEqual(['kireka']);
+      expect(learningsFor(draft)).toEqual([]);
+    });
+
+    it('go to the group that was named', () => {
+      expect(draftFor('paid kireka sacco 50k', [bweyo, kireka]).input.toWalletId).toBe('kireka');
+    });
+
+    it('leave the group to choose when several match nothing', () => {
+      const draft = draftFor('paid sacco 50k', [bweyo, kireka]);
+      expect(draft.input).toMatchObject({ type: 'transfer', toWalletId: null });
+      expect(draft.groupWalletIds).toEqual(['bweyo', 'kireka']);
+    });
+
+    it('stay ordinary spending without groups', () => {
+      const draft = draftFor('paid sacco 50k', []);
+      expect(draft.input).toMatchObject({
+        type: 'expense',
+        categoryId: cat('Savings group/SACCO'),
+      });
+      expect(draft.groupWalletIds).toBeNull();
+    });
+  });
 });
 
 describe('learningsFor', () => {

@@ -228,10 +228,13 @@ function VoicePanel() {
   const outcomeFor = (result: ParseResult, now: Date): Outcome => {
     if (result.intent === 'log' && result.items.length > 0 && data) {
       const stamp = Date.now();
+      const groups = (plan?.groups ?? []).filter((g) => !g.archived);
       return {
         kind: 'review',
         mode: 'voice',
-        drafts: result.items.map((item, i) => toDraft(item, `${stamp}-${i}`, preferredWallet, now)),
+        drafts: result.items.map((item, i) =>
+          toDraft(item, `${stamp}-${i}`, preferredWallet, now, groups),
+        ),
       };
     }
     if (result.intent === 'question') {

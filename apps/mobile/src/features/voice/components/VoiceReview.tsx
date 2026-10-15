@@ -319,12 +319,27 @@ export function VoiceReview({
       />
       <WalletPickerSheet
         ref={toWalletSheet}
-        title="To wallet"
-        wallets={data.wallets.filter((w) => w.id !== active?.input.walletId)}
+        title={active?.groupWalletIds ? 'Savings group' : 'To wallet'}
+        wallets={data.wallets.filter((w) =>
+          active?.groupWalletIds
+            ? active.groupWalletIds.includes(w.id)
+            : w.id !== active?.input.walletId,
+        )}
         selectedId={active?.input.toWalletId ?? null}
         mainId={mainId}
         onSelect={(toWalletId) => {
-          patchActive({ toWalletId });
+          // A group's wallet carries the group's name; the note matches the group screen's.
+          const group = active?.groupWalletIds && data.wallets.find((w) => w.id === toWalletId);
+          const autoNotes = [
+            active?.parsed.note,
+            ...data.wallets
+              .filter((w) => active?.groupWalletIds?.includes(w.id))
+              .map((w) => `${w.name} contribution`),
+          ];
+          const keepNote = !group || !autoNotes.includes(active?.input.note);
+          patchActive(
+            keepNote ? { toWalletId } : { toWalletId, note: `${group.name} contribution` },
+          );
           toWalletSheet.current?.dismiss();
         }}
       />

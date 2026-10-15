@@ -175,12 +175,17 @@ export function ConfirmationCard({
       />
       {transfer ? (
         <AccountCard
-          label="To"
+          label={draft.groupWalletIds ? 'Savings group' : 'To'}
           wallet={toWallet}
           isMain={input.toWalletId === mainId}
           onChange={() => onPick('toWallet')}
           error={errors.toWalletId}
-          attention={unsure('wallet', input.toWalletId !== parsed.toWalletId)}
+          emptyHint={draft.groupWalletIds ? 'Choose your group' : undefined}
+          attention={
+            draft.groupWalletIds && !input.toWalletId
+              ? 'Which group is this for?'
+              : unsure('wallet', input.toWalletId !== parsed.toWalletId)
+          }
         />
       ) : null}
 

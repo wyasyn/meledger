@@ -40,6 +40,9 @@ export const DEBT_CATEGORY_IDS = {
   repaidToMe: '76f372d9-76a8-4c77-a6af-fdd80accd1e9',
 } as const;
 
+/** Payments to a SACCO, VSLA or chama; spoken ones become contributions to the user's group. */
+export const SAVINGS_GROUP_CATEGORY_ID = '19211637-ef1b-439e-b736-119036f692e9';
+
 /** System categories from both reference sheets plus local ones (build prompt section 7). */
 export const CATEGORY_SEEDS: readonly CategorySeed[] = [
   {
@@ -379,7 +382,7 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     color: 'slate',
   },
   {
-    id: '19211637-ef1b-439e-b736-119036f692e9',
+    id: SAVINGS_GROUP_CATEGORY_ID,
     name: 'Savings group/SACCO',
     kind: 'expense',
     group: 'Local',
