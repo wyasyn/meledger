@@ -12,20 +12,20 @@ export function registerDevTools(): void {
   if (!__DEV__) return;
   void registerDevMenuItems([
     {
-      name: 'MeLedger: add sample entries',
+      name: 'MeLedger: add sample entries and plan',
       shouldCollapse: true,
       callback: () => {
         addSampleData().then(
-          (count) => showSnackbar({ message: `Added ${count} sample entries` }),
+          (count) => showSnackbar({ message: `Added ${count} sample entries and a sample plan` }),
           (e: unknown) => showSnackbar({ message: `Sample entries failed: ${String(e)}` }),
         );
       },
     },
     {
-      name: 'MeLedger: remove sample entries',
+      name: 'MeLedger: remove sample entries and plan',
       shouldCollapse: true,
       callback: () => {
-        removeSampleData().then(() => showSnackbar({ message: 'Sample entries removed' }));
+        removeSampleData().then(() => showSnackbar({ message: 'Sample entries and plan removed' }));
       },
     },
   ]);

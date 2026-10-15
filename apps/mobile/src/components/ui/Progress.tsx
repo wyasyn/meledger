@@ -54,10 +54,10 @@ export function ProgressRing({
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const offset = circumference * (1 - clamp(value));
+  const pct = Math.round(clamp(value) * 100);
   const props = useAnimatedProps(() => ({
     strokeDashoffset: withTiming(offset, { duration: motion.slow }),
   }));
-  const pct = Math.round(clamp(value) * 100);
   return (
     <View
       accessibilityRole="progressbar"
@@ -79,7 +79,8 @@ export function ProgressRing({
           r={r}
           stroke={color}
           strokeWidth={stroke}
-          strokeLinecap="round"
+          // A round cap draws a dot even at zero length, so an empty ring shows no arc at all.
+          strokeLinecap={pct > 0 ? 'round' : 'butt'}
           fill="none"
           strokeDasharray={circumference}
           animatedProps={props}
