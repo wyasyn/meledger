@@ -103,5 +103,6 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
-  content: { paddingHorizontal: spacing.gutter, gap: spacing.md },
+  // Top room so the first field's focus ring (drawn outside the card) isn't clipped.
+  content: { paddingHorizontal: spacing.gutter, paddingTop: spacing.xs, gap: spacing.md },
 });
