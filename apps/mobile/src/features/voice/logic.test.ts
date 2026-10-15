@@ -134,8 +134,44 @@ describe('answerQuestion', () => {
       ['cash', 150_000],
       ['mtn', 50_000],
     ]),
+    budgets: [
+      {
+        categoryId: cat('Groceries'),
+        period: 'monthly' as const,
+        limitAmount: 100_000,
+        alertAt: 80,
+        startsAt: null,
+        endsAt: null,
+      },
+      {
+        categoryId: cat('Eating out'),
+        period: 'weekly' as const,
+        limitAmount: 10_000,
+        alertAt: 80,
+        startsAt: null,
+        endsAt: null,
+      },
+    ],
+    goals: [
+      {
+        id: 'l',
+        name: 'Laptop',
+        targetAmount: 1_000_000,
+        targetDate: new Date(2027, 0, 14, 18, 30),
+        createdAt: new Date(2026, 6, 14, 18, 30),
+        saved: 200_000,
+      },
+      {
+        id: 's',
+        name: 'School fees',
+        targetAmount: 500_000,
+        targetDate: null,
+        createdAt: new Date(2026, 0, 1),
+        saved: 500_000,
+      },
+    ],
   };
-  const ask = (text: string) => answerQuestion(localParse(text, ctx).question!, data, now);
+  const ask = (text: string, d = data) => answerQuestion(localParse(text, ctx).question!, d, now);
 
   it('sums spending on a category this week', () => {
     expect(ask('how much did I spend on boda this week?').text).toBe(
@@ -162,6 +198,53 @@ describe('answerQuestion', () => {
   it('reads a wallet balance and the total', () => {
     expect(ask('how much is on momo').text).toBe('You have UGX 50,000 on MTN MoMo.');
     expect(ask("what's my balance").text).toBe('Your balance is UGX 200,000 across all wallets.');
+  });
+
+  it('reads what is left in one budget', () => {
+    expect(ask('how much is left in my food budget?').text).toBe(
+      'You have UGX 60,000 left of UGX 100,000 in your Groceries budget this month.',
+    );
+    expect(ask('how is my eating out budget').text).toBe(
+      "You're UGX 3,000 over your Eating out budget this week.",
+    );
+    expect(ask('how much is left in my boda budget').text).toBe(
+      "You haven't set a budget for Boda/Taxi yet.",
+    );
+  });
+
+  it('lists every budget', () => {
+    const answer = ask('how are my budgets');
+    expect(answer.text).toBe("Here's what's left in your 2 budgets. 1 is over.");
+    expect(answer.rows).toEqual([
+      { label: 'Groceries', amount: 60_000 },
+      { label: 'Eating out (over by)', amount: 3_000 },
+    ]);
+    expect(ask('how are my budgets', { ...data, budgets: [] }).text).toBe(
+      "You haven't set any budgets yet.",
+    );
+  });
+
+  it('reads one goal by name', () => {
+    const answer = ask('how is my laptop goal');
+    expect(answer.text).toBe(
+      "You've saved UGX 200,000 of UGX 1,000,000 for Laptop (20%). You're 30% behind schedule and off target.",
+    );
+    expect(answer.rows).toEqual([{ label: 'Left to save', amount: 800_000 }]);
+    expect(ask('have I reached my school fees goal').text).toBe(
+      "You've reached your School fees goal: UGX 500,000 saved. Well done!",
+    );
+  });
+
+  it('sums every goal, or reads the only one', () => {
+    const answer = ask("how's my goal?");
+    expect(answer.text).toBe("You've saved UGX 700,000 across your 2 goals. 1 is behind schedule.");
+    expect(answer.rows.map((r) => r.label)).toEqual(['Laptop (20%)', 'School fees (100%)']);
+    expect(ask("how's my goal?", { ...data, goals: [data.goals[0]!] }).text).toMatch(
+      /^You've saved UGX 200,000 of/,
+    );
+    expect(ask("how's my goal?", { ...data, goals: [] }).text).toBe(
+      "You haven't set any goals yet.",
+    );
   });
 });
 

@@ -329,6 +329,14 @@ describe('localParse: questions', () => {
     ["what's my balance", { metric: 'balance' }],
     ['how much is on momo', { metric: 'balance', walletId: 'mtn' }],
     ['how much did I spend yesterday', { metric: 'spent', period: 'yesterday' }],
+    [
+      'how much is left in my food budget?',
+      { metric: 'budget_left', categoryId: cat('Groceries'), goal: null },
+    ],
+    ['how are my budgets', { metric: 'budget_left', categoryId: null }],
+    ["how's my goal?", { metric: 'goal_progress', goal: null }],
+    ['how much have I saved for my laptop goal', { metric: 'goal_progress', goal: 'laptop' }],
+    ['am I on track with the school fees goal', { metric: 'goal_progress', goal: 'school' }],
   ] as const)('%s', (text, expected) => {
     const result = localParse(text, ctx);
     expect(result.intent).toBe('question');

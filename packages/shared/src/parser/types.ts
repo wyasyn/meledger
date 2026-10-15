@@ -37,7 +37,14 @@ export const QUESTION_PERIODS = [
 ] as const;
 export type QuestionPeriod = (typeof QUESTION_PERIODS)[number];
 
-export const QUESTION_METRICS = ['spent', 'earned', 'balance', 'top_categories'] as const;
+export const QUESTION_METRICS = [
+  'spent',
+  'earned',
+  'balance',
+  'top_categories',
+  'budget_left',
+  'goal_progress',
+] as const;
 export type QuestionMetric = (typeof QUESTION_METRICS)[number];
 
 const currencyCodes = Object.keys(CURRENCIES) as [keyof typeof CURRENCIES];
@@ -78,6 +85,8 @@ export const ParsedQuestionSchema = z.object({
   categoryId: z.string().nullable(),
   walletId: z.string().nullable(),
   period: z.enum(QUESTION_PERIODS),
+  /** For `goal_progress`: the goal name as heard, or null when no name was said. */
+  goal: z.string().nullable(),
 });
 export type ParsedQuestion = z.infer<typeof ParsedQuestionSchema>;
 

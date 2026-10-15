@@ -662,6 +662,7 @@ function analyzeAs(draft: Draft, type: TransactionType, ctx: ParseContext): Draf
 
 const QUESTION_STARTERS = new Set([
   'how',
+  'hows',
   'what',
   'whats',
   'where',
@@ -693,24 +694,60 @@ function readPeriod(tokens: readonly string[]): QuestionPeriod {
   return 'this_month';
 }
 
+const GOAL_QUESTION_FILLER = new Set([
+  ...QUESTION_STARTERS,
+  'goal',
+  'goals',
+  'much',
+  'many',
+  'doing',
+  'going',
+  'progress',
+  'saved',
+  'save',
+  'left',
+  'far',
+  'close',
+  'near',
+  'track',
+  'status',
+  'reach',
+  'reached',
+  'today',
+  'yesterday',
+  'week',
+  'month',
+  'year',
+  'last',
+]);
+
 function readQuestion(tokens: readonly string[], ctx: ParseContext): ParsedQuestion | null {
-  if (
-    has(tokens, [
-      'budget',
-      'budgets',
-      'goal',
-      'goals',
-      'afford',
-      'should',
-      'advice',
-      'save',
-      'owe',
-      'owes',
-    ])
-  ) {
+  const period = readPeriod(tokens);
+  if (has(tokens, ['budget', 'budgets'])) {
+    const category = findCategory(tokens, new Set(), ctx, 'expense');
+    return {
+      metric: 'budget_left',
+      categoryId: category?.id ?? null,
+      walletId: null,
+      period,
+      goal: null,
+    };
+  }
+  if (has(tokens, ['goal', 'goals'])) {
+    const name = tokens
+      .filter((t) => !GOAL_QUESTION_FILLER.has(t) && !STOP_WORDS.has(t) && /^[a-z]/.test(t))
+      .join(' ');
+    return {
+      metric: 'goal_progress',
+      categoryId: null,
+      walletId: null,
+      period,
+      goal: name || null,
+    };
+  }
+  if (has(tokens, ['afford', 'should', 'advice', 'save', 'owe', 'owes'])) {
     return null;
   }
-  const period = readPeriod(tokens);
   const claimed: Claimed = new Set();
   const wallet = findWallets(tokens, claimed, ctx)[0]?.walletId ?? null;
 
@@ -737,7 +774,7 @@ function readQuestion(tokens: readonly string[], ctx: ParseContext): ParsedQuest
     metric === 'spent' || metric === 'earned'
       ? findCategory(tokens, claimed, ctx, metric === 'earned' ? 'income' : 'expense')
       : null;
-  return { metric, categoryId: category?.id ?? null, walletId: wallet, period };
+  return { metric, categoryId: category?.id ?? null, walletId: wallet, period, goal: null };
 }
 
 function readCommand(

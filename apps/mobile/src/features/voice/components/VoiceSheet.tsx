@@ -35,6 +35,8 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { useSheetBackHandler } from '@/components/ui/useSheetBackHandler';
 import { showPermissionSheet } from '@/features/permissions/store';
+import { savedByGoal } from '@/features/plan/logic';
+import { usePlanData } from '@/features/plan/usePlanData';
 import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData';
 import { mainWalletId } from '@/features/wallets/logic';
 import { lightColors, radius, shadow, spacing, tint } from '@/theme/tokens';
@@ -166,6 +168,7 @@ function VoicePanel() {
   const startedByHold = useRef(holding);
   const data = useLedgerData();
   const ledger = useLedger(data);
+  const plan = usePlanData();
   const [outcome, setOutcome] = useState<Outcome>({ kind: 'none' });
   // What this opening is for; fixed for the sheet's lifetime (it unmounts on dismiss).
   const [request] = useState(() => useVoiceSheet.getState().request);
@@ -217,7 +220,8 @@ function VoicePanel() {
 
   const listening = status === 'listening' || status === 'starting';
   // Between the end of listening and the parsed result, the orb shows it is working.
-  const finished = status === 'done' && transcript.trim() !== '' && data !== undefined;
+  const finished =
+    status === 'done' && transcript.trim() !== '' && data !== undefined && plan !== undefined;
   const thinking = finished && outcome.kind === 'none';
   const mode: OrbMode = listening ? 'listening' : thinking ? 'thinking' : 'idle';
 
@@ -231,11 +235,11 @@ function VoicePanel() {
       };
     }
     if (result.intent === 'question') {
-      if (!result.question || !data || !ledger) {
+      if (!result.question || !data || !ledger || !plan) {
         return {
           kind: 'notice',
           title: "I can't answer that one yet",
-          body: 'Ask how much you spent or earned, what you spent most on, or your balance.',
+          body: 'Ask how much you spent or earned, what you spent most on, your balance, a budget or a goal.',
         };
       }
       const transactions = data.transactions.map((tx, i) => ({
@@ -243,11 +247,19 @@ function VoicePanel() {
         categoryId: tx.categoryId,
       }));
       const wallets = data.wallets.filter((w) => !w.archived);
+      const saved = savedByGoal(plan.contributions);
       return {
         kind: 'answer',
         answer: answerQuestion(
           result.question,
-          { transactions, categories: data.categories, wallets, balances: ledger.balances },
+          {
+            transactions,
+            categories: data.categories,
+            wallets,
+            balances: ledger.balances,
+            budgets: plan.budgets,
+            goals: plan.goals.map((g) => ({ ...g, saved: saved.get(g.id) ?? 0 })),
+          },
           now,
         ),
       };

@@ -76,7 +76,7 @@ export interface BudgetStatus {
 
 export function budgetStatus(
   budget: BudgetLike,
-  transactions: readonly PlanTransaction[],
+  transactions: readonly Pick<PlanTransaction, 'type' | 'amount' | 'categoryId' | 'occurredAt'>[],
   now: Date,
 ): BudgetStatus {
   const period = budgetPeriod(budget, now);

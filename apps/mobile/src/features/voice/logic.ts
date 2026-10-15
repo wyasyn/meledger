@@ -11,7 +11,15 @@ import {
 import { addDays, addMonths, addYears, format, startOfDay, startOfYear, subDays } from 'date-fns';
 
 import { monthPeriod, type Period, weekPeriod } from '../home/logic';
-import { debtCategory, debtFromKind } from '../plan/logic';
+import {
+  type BudgetLike,
+  budgetPeriodLabel,
+  budgetStatus,
+  debtCategory,
+  debtFromKind,
+  goalBandText,
+  goalProgress,
+} from '../plan/logic';
 
 interface ContextWallet {
   id: string;
@@ -212,11 +220,106 @@ export interface Answer {
   rows: AnswerRow[];
 }
 
+interface AnswerGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  targetDate: Date | null;
+  createdAt: Date;
+  saved: number;
+}
+
 interface AnswerData {
   transactions: readonly (LedgerTransaction & { categoryId: string | null })[];
   categories: readonly ContextCategory[];
   wallets: readonly { id: string; name: string }[];
   balances: ReadonlyMap<string, number>;
+  budgets: readonly BudgetLike[];
+  /** Goals that are not archived. */
+  goals: readonly AnswerGoal[];
+}
+
+/** "this month", "this week", or a custom budget's dates in brackets. */
+function budgetWhen(budget: BudgetLike, now: Date): string {
+  const label = budgetPeriodLabel(budget, now);
+  return budget.period === 'custom' ? `(${label})` : label.toLowerCase();
+}
+
+function answerBudget(q: ParsedQuestion, data: AnswerData, now: Date): Answer {
+  const name = (categoryId: string) =>
+    data.categories.find((c) => c.id === categoryId)?.name ?? 'No category';
+  const asked = q.categoryId ? data.budgets.filter((b) => b.categoryId === q.categoryId) : [];
+  if (q.categoryId && asked.length === 0) {
+    return { text: `You haven't set a budget for ${name(q.categoryId)} yet.`, rows: [] };
+  }
+  const budgets = q.categoryId ? asked : data.budgets;
+  if (budgets.length === 0) return { text: "You haven't set any budgets yet.", rows: [] };
+
+  const statuses = budgets.map((b) => ({
+    budget: b,
+    status: budgetStatus(b, data.transactions, now),
+  }));
+  if (statuses.length === 1) {
+    const { budget, status } = statuses[0]!;
+    const what = `your ${name(budget.categoryId)} budget ${budgetWhen(budget, now)}`;
+    const text =
+      status.remaining > 0
+        ? `You have ${formatMoney(status.remaining)} left of ${formatMoney(status.limit)} in ${what}.`
+        : status.remaining === 0
+          ? `You've used all of ${what}.`
+          : `You're ${formatMoney(-status.remaining)} over ${what}.`;
+    return { text, rows: [] };
+  }
+  const over = statuses.filter((s) => s.status.remaining < 0).length;
+  return {
+    text:
+      over === 0
+        ? `Here's what's left in your ${statuses.length} budgets.`
+        : `Here's what's left in your ${statuses.length} budgets. ${over} ${over === 1 ? 'is' : 'are'} over.`,
+    rows: statuses.map(({ budget, status }) => ({
+      label:
+        status.remaining < 0 ? `${name(budget.categoryId)} (over by)` : name(budget.categoryId),
+      amount: Math.abs(status.remaining),
+    })),
+  };
+}
+
+function answerGoal(q: ParsedQuestion, data: AnswerData, now: Date): Answer {
+  if (data.goals.length === 0) return { text: "You haven't set any goals yet.", rows: [] };
+  const goal = q.goal
+    ? matchGoal(q.goal, data.goals)
+    : data.goals.length === 1
+      ? data.goals[0]!
+      : null;
+  if (goal) {
+    const p = goalProgress(goal, goal.saved, now);
+    if (p.schedule === 'done') {
+      return {
+        text: `You've reached your ${goal.name} goal: ${formatMoney(p.saved)} saved. Well done!`,
+        rows: [],
+      };
+    }
+    const band = goalBandText(p, goal.targetDate);
+    const percent = Math.round(p.ratio * 100);
+    return {
+      text: `You've saved ${formatMoney(p.saved)} of ${formatMoney(p.target)} for ${goal.name} (${percent}%).${band ? ` ${band}` : ''}`,
+      rows: [{ label: 'Left to save', amount: p.left }],
+    };
+  }
+  const progress = data.goals.map((g) => ({ goal: g, p: goalProgress(g, g.saved, now) }));
+  const behind = progress.filter(({ p }) => p.schedule === 'behind' || p.schedule === 'overdue');
+  const saved = progress.reduce((sum, { p }) => sum + p.saved, 0);
+  return {
+    text:
+      `You've saved ${formatMoney(saved)} across your ${progress.length} goals.` +
+      (behind.length > 0
+        ? ` ${behind.length} ${behind.length === 1 ? 'is' : 'are'} behind schedule.`
+        : ''),
+    rows: progress.map(({ goal: g, p }) => ({
+      label: `${g.name} (${Math.round(p.ratio * 100)}%)`,
+      amount: p.saved,
+    })),
+  };
 }
 
 export function answerQuestion(q: ParsedQuestion, data: AnswerData, now: Date): Answer {
@@ -233,6 +336,10 @@ export function answerQuestion(q: ParsedQuestion, data: AnswerData, now: Date): 
   );
 
   switch (q.metric) {
+    case 'budget_left':
+      return answerBudget(q, data, now);
+    case 'goal_progress':
+      return answerGoal(q, data, now);
     case 'balance': {
       if (q.walletId) {
         const amount = data.balances.get(q.walletId) ?? 0;
