@@ -84,6 +84,8 @@ export function BarChart({
         xAxis={{
           font,
           tickValues,
+          // victory-native thins tickValues down to tickCount (default 5); keep every one.
+          tickCount: tickValues.length,
           formatXLabel: (i) => data[i]?.label ?? '',
           labelColor: lightColors.onSurfaceVariant,
           lineWidth: 0,
