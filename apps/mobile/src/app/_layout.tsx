@@ -86,6 +86,7 @@ function AppStack() {
         <Stack.Screen name="debts/[id]/index" />
         <Stack.Screen name="debts/[id]/edit" />
         <Stack.Screen name="groups/new" />
+        <Stack.Screen name="groups/archived" />
         <Stack.Screen name="groups/[id]/index" />
         <Stack.Screen name="groups/[id]/edit" />
       </Stack.Protected>

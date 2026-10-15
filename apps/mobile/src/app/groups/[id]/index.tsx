@@ -161,6 +161,8 @@ export default function GroupScreen() {
                   onPress: () => void setSavingsGroupArchived(group.id, false),
                 },
               });
+            } else {
+              showSnackbar({ message: `${group.name} is back on your Plan` });
             }
           }}
         />

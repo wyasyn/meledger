@@ -80,6 +80,7 @@ export default function PlanScreen() {
   const activeGoals = plan.goals.filter((g) => g.status !== 'archived');
   const openDebts = plan.debts.filter((d) => d.status === 'open');
   const groups = plan.groups.filter((g) => !g.archived);
+  const archivedGroups = plan.groups.length - groups.length;
 
   const goalAction = async (goal: Goal, action: 'add' | 'edit' | 'delete') => {
     if (action === 'add') {
@@ -376,6 +377,16 @@ export default function PlanScreen() {
               );
             })
           )}
+          {archivedGroups > 0 ? (
+            <ListGroup>
+              <ListRow
+                title="Archived groups"
+                subtitle={`${archivedGroups} ${archivedGroups === 1 ? 'group' : 'groups'}`}
+                icon="archive"
+                onPress={() => router.push('/groups/archived')}
+              />
+            </ListGroup>
+          ) : null}
         </View>
       </Screen>
 
