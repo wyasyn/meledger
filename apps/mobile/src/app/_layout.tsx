@@ -16,6 +16,8 @@ import { registerDevTools } from '@/features/dev/devMenu';
 import { PermissionSheetHost } from '@/features/permissions/PermissionSheet';
 import { useProfile } from '@/features/profile/repo';
 import { AddPlanSheetHost } from '@/features/plan/components/AddPlanSheet';
+import { NotificationSync } from '@/features/reminders/NotificationSync';
+import { LockGate } from '@/features/security/LockGate';
 import { VoiceSheetHost } from '@/features/voice/components/VoiceSheet';
 import { appFonts } from '@/theme/fonts';
 import { lightColors, spacing } from '@/theme/tokens';
@@ -52,8 +54,11 @@ export default function RootLayout() {
             <VoiceSheetHost />
             <AddPlanSheetHost />
             <PermissionSheetHost />
-            {splashDone ? null : <AnimatedSplash onDone={() => setSplashDone(true)} />}
+            {database.error ? null : <NotificationSync />}
           </BottomSheetModalProvider>
+          {/* Outside the sheet provider, so the lock covers open sheets too. */}
+          {database.error ? null : <LockGate />}
+          {splashDone ? null : <AnimatedSplash onDone={() => setSplashDone(true)} />}
         </KeyboardProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -86,6 +91,15 @@ function AppStack() {
         <Stack.Screen name="groups/archived" />
         <Stack.Screen name="groups/[id]/index" />
         <Stack.Screen name="groups/[id]/edit" />
+        <Stack.Screen name="settings/categories/index" />
+        <Stack.Screen name="settings/categories/[id]" />
+        <Stack.Screen name="settings/notifications" />
+        <Stack.Screen name="settings/voice" />
+        <Stack.Screen name="settings/security" />
+        <Stack.Screen name="settings/appearance" />
+        <Stack.Screen name="settings/advanced" />
+        <Stack.Screen name="settings/help" />
+        <Stack.Screen name="settings/privacy" />
       </Stack.Protected>
       <Stack.Protected guard={!onboarded}>
         <Stack.Screen name="onboarding" />

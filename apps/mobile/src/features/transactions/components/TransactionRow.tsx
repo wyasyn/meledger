@@ -10,6 +10,7 @@ import { openEntrySheet } from '@/features/voice/store';
 import { lightColors, paletteColor, radius, shadow, spacing } from '@/theme/tokens';
 
 import { TagChip } from './TagChip';
+import { MASK } from '@/features/security/balances';
 
 interface TransactionRowProps {
   tx: Transaction;
@@ -18,6 +19,8 @@ interface TransactionRowProps {
   toWallet: Wallet | undefined;
   tags: Tag[];
   balanceAfter: number | undefined;
+  /** Home with Hide balances on: amounts show as dots. */
+  hideAmounts?: boolean;
 }
 
 /** Home list row: icon tile, title, wallet and tag chips, signed amount and balance after. */
@@ -28,6 +31,7 @@ export function TransactionRow({
   toWallet,
   tags,
   balanceAfter,
+  hideAmounts = false,
 }: TransactionRowProps) {
   const transfer = tx.type === 'transfer';
   const walletLabel = transfer
@@ -41,19 +45,26 @@ export function TransactionRow({
       : tx.type === 'expense'
         ? lightColors.expense
         : lightColors.onSurface;
-  const amountText = transfer
-    ? formatAmount(tx.amount, 'UGX')
-    : `${sign}${formatAmount(tx.amount, 'UGX')}`;
-  const fee = transfer && tx.feeAmount > 0 ? `Fee ${formatAmount(tx.feeAmount, 'UGX')}` : null;
+  const amountText = hideAmounts
+    ? MASK
+    : transfer
+      ? formatAmount(tx.amount, 'UGX')
+      : `${sign}${formatAmount(tx.amount, 'UGX')}`;
+  const fee =
+    transfer && tx.feeAmount > 0 && !hideAmounts
+      ? `Fee ${formatAmount(tx.feeAmount, 'UGX')}`
+      : null;
   const a11yLabel = [
     title,
     transfer
-      ? `transfer of ${formatMoney(tx.amount, 'UGX')} from ${wallet?.name ?? 'unknown wallet'} to ${toWallet?.name ?? 'unknown wallet'}`
-      : `${tx.type} of ${formatMoney(tx.amount, 'UGX')}, ${walletLabel}`,
+      ? `transfer of ${hideAmounts ? 'hidden amount' : formatMoney(tx.amount, 'UGX')} from ${wallet?.name ?? 'unknown wallet'} to ${toWallet?.name ?? 'unknown wallet'}`
+      : `${tx.type} of ${hideAmounts ? 'hidden amount' : formatMoney(tx.amount, 'UGX')}, ${walletLabel}`,
     fee,
     tx.note && !transfer && category ? category.name : null,
     ...tags.map((tag) => tag.name),
-    balanceAfter !== undefined ? `balance after ${formatMoney(balanceAfter, 'UGX')}` : null,
+    balanceAfter !== undefined && !hideAmounts
+      ? `balance after ${formatMoney(balanceAfter, 'UGX')}`
+      : null,
   ]
     .filter(Boolean)
     .join(', ');
@@ -108,7 +119,7 @@ export function TransactionRow({
         </Text>
         {balanceAfter !== undefined ? (
           <Text variant="small" tone="muted" style={styles.tabular}>
-            {formatAmount(balanceAfter, 'UGX')}
+            {hideAmounts ? MASK : formatAmount(balanceAfter, 'UGX')}
           </Text>
         ) : null}
       </View>

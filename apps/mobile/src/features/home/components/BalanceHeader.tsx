@@ -10,7 +10,7 @@ import { IconButton } from '@/components/ui/IconButton';
 import { Menu } from '@/components/ui/Menu';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { showSnackbar } from '@/features/feedback/snackbar';
+import { MASK } from '@/features/security/balances';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
 import { monthPeriod, periodLabel } from '../logic';
@@ -23,10 +23,21 @@ const WHITE_FILL = 'rgba(255,255,255,0.18)';
 interface BalanceHeaderProps {
   balance: number;
   weekChange: number;
+  /** Amounts show as dots (Settings > Security > Hide balances). */
+  hidden: boolean;
+  /** Hide balances is on, so tapping the balance reveals or hides it again. */
+  canHide: boolean;
+  onToggleHidden: () => void;
 }
 
 /** Blue gradient header with month selector (shows any Home period), current balance and change vs last week. */
-export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
+export function BalanceHeader({
+  balance,
+  weekChange,
+  hidden,
+  canHide,
+  onToggleHidden,
+}: BalanceHeaderProps) {
   const insets = useSafeAreaInsets();
   const period = useHomeStore((s) => s.period);
   const setPeriod = useHomeStore((s) => s.setPeriod);
@@ -38,8 +49,9 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
   }));
   const selected = period.kind === 'month' ? String(period.from.getTime()) : undefined;
 
-  const change =
-    weekChange === 0
+  const change = hidden
+    ? 'Tap the balance to show it'
+    : weekChange === 0
       ? 'Same as last week'
       : `${weekChange > 0 ? '+' : '-'}${formatMoney(Math.abs(weekChange))} than last week`;
 
@@ -79,9 +91,9 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
         />
         <IconButton
           icon="bell"
-          label="Notifications"
+          label="Reminders and alerts"
           variant="glass"
-          onPress={() => showSnackbar({ message: 'Notifications arrive in milestone 5' })}
+          onPress={() => router.push('/settings/notifications')}
         />
       </View>
 
@@ -89,21 +101,26 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
         <Text variant="caption" color={WHITE_SOFT}>
           Current Balance
         </Text>
-        <View
+        <PressableScale
+          onPress={canHide ? onToggleHidden : undefined}
+          disabled={!canHide}
+          scaleTo={0.97}
           style={styles.amountRow}
-          accessible
-          accessibilityLabel={`Current balance ${formatMoney(balance)}`}
+          accessibilityRole={canHide ? 'button' : undefined}
+          accessibilityLabel={
+            hidden ? 'Current balance hidden. Show it' : `Current balance ${formatMoney(balance)}`
+          }
         >
           <Text variant="title" color={WHITE_SOFT}>
-            {balance < 0 ? '-UGX' : 'UGX'}
+            {!hidden && balance < 0 ? '-UGX' : 'UGX'}
           </Text>
           <Text variant="display" tone="inverse">
-            {formatAmount(Math.abs(balance), 'UGX')}
+            {hidden ? MASK : formatAmount(Math.abs(balance), 'UGX')}
           </Text>
-        </View>
+        </PressableScale>
         <View style={styles.changePill}>
           <Icon
-            name={weekChange < 0 ? 'trend-down' : 'trend-up'}
+            name={hidden ? 'eye-slash' : weekChange < 0 ? 'trend-down' : 'trend-up'}
             weight="bold"
             size={12}
             color={WHITE}

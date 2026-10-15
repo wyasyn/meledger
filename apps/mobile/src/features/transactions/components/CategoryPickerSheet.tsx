@@ -31,13 +31,14 @@ export function CategoryPickerSheet({
   const sections = useMemo(() => {
     const byGroup = new Map<string, Category[]>();
     for (const c of categories) {
-      if (c.kind !== kind) continue;
+      // Hidden categories are not offered, except the one already chosen.
+      if (c.kind !== kind || (c.hidden && c.id !== selectedId)) continue;
       const list = byGroup.get(c.group);
       if (list) list.push(c);
       else byGroup.set(c.group, [c]);
     }
     return [...byGroup].map(([title, data]) => ({ title, data }));
-  }, [categories, kind]);
+  }, [categories, kind, selectedId]);
 
   return (
     <Sheet ref={ref} title="Category" snapPoints={['70%', '95%']}>

@@ -88,6 +88,14 @@ export const BudgetInputSchema = z
   });
 export type BudgetInput = z.infer<typeof BudgetInputSchema>;
 
+export const CategoryInputSchema = z.object({
+  name: z.string().trim().min(1, 'Name the category').max(30, 'Keep it under 30 characters'),
+  kind: z.enum(['income', 'expense']),
+  icon: z.string().min(1),
+  color: z.enum(colorKeys),
+});
+export type CategoryInput = z.infer<typeof CategoryInputSchema>;
+
 export const GOAL_STATUSES = ['active', 'done', 'archived'] as const;
 
 export const GoalInputSchema = z.object({

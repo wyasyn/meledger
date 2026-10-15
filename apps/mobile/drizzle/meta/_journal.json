@@ -36,6 +36,13 @@
       "when": 1792026816840,
       "tag": "0004_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792090629399,
+      "tag": "0005_settings",
+      "breakpoints": true
     }
   ]
 }

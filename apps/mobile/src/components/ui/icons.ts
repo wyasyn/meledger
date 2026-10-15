@@ -111,6 +111,18 @@ import { WalletIcon } from 'phosphor-react-native/src/icons/Wallet';
 import { WifiHighIcon } from 'phosphor-react-native/src/icons/WifiHigh';
 import { WrenchIcon } from 'phosphor-react-native/src/icons/Wrench';
 import { XIcon } from 'phosphor-react-native/src/icons/X';
+import { CloudArrowUpIcon } from 'phosphor-react-native/src/icons/CloudArrowUp';
+import { QuestionIcon } from 'phosphor-react-native/src/icons/Question';
+import { SlidersIcon } from 'phosphor-react-native/src/icons/Sliders';
+import { RobotIcon } from 'phosphor-react-native/src/icons/Robot';
+import { SignInIcon } from 'phosphor-react-native/src/icons/SignIn';
+import { CrownIcon } from 'phosphor-react-native/src/icons/Crown';
+import { ChatCircleTextIcon } from 'phosphor-react-native/src/icons/ChatCircleText';
+import { SpeakerHighIcon } from 'phosphor-react-native/src/icons/SpeakerHigh';
+import { UserMinusIcon } from 'phosphor-react-native/src/icons/UserMinus';
+import { EyeSlashIcon } from 'phosphor-react-native/src/icons/EyeSlash';
+import { MoonIcon } from 'phosphor-react-native/src/icons/Moon';
+import { DownloadSimpleIcon } from 'phosphor-react-native/src/icons/DownloadSimple';
 
 /** Keys stored on categories and wallets (shared with the API). */
 const STORED: Record<StoredIconKey, PhosphorIcon> = {
@@ -236,6 +248,20 @@ const UI = {
   'calendar-check': CalendarCheckIcon,
   debt: HandCoinsIcon,
   group: UsersThreeIcon,
+  palette: PaletteIcon,
+  cloud: CloudArrowUpIcon,
+  help: QuestionIcon,
+  privacy: ShieldCheckIcon,
+  sliders: SlidersIcon,
+  robot: RobotIcon,
+  'sign-in': SignInIcon,
+  crown: CrownIcon,
+  chat: ChatCircleTextIcon,
+  speaker: SpeakerHighIcon,
+  'user-minus': UserMinusIcon,
+  'eye-slash': EyeSlashIcon,
+  moon: MoonIcon,
+  download: DownloadSimpleIcon,
 } satisfies Record<string, PhosphorIcon>;
 
 export const ICONS: Record<StoredIconKey | keyof typeof UI, PhosphorIcon> = { ...STORED, ...UI };

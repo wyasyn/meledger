@@ -36,6 +36,18 @@ export const profile = sqliteTable('profile', {
   incomeKind: text('income_kind', { enum: ['salary', 'freelance', 'business', 'irregular'] }),
   usualIncome: integer('usual_income'),
   payDay: integer('pay_day'),
+  /** Minutes in the background before the biometric lock asks again (0 = every time). */
+  lockDelay: integer('lock_delay').notNull().default(0),
+  /** Home shows amounts as dots until the balance is tapped. */
+  hideBalances: integer('hide_balances', { mode: 'boolean' }).notNull().default(false),
+  /** Spoken transcripts are kept with voice entries (used for learning). */
+  storeTranscripts: integer('store_transcripts', { mode: 'boolean' }).notNull().default(true),
+  billAlerts: integer('bill_alerts', { mode: 'boolean' }).notNull().default(true),
+  budgetAlerts: integer('budget_alerts', { mode: 'boolean' }).notNull().default(true),
+  goalAlerts: integer('goal_alerts', { mode: 'boolean' }).notNull().default(true),
+  /** Alerts due between these times ("HH:mm") wait until the end. */
+  quietStart: text('quiet_start').notNull().default('22:00'),
+  quietEnd: text('quiet_end').notNull().default('07:00'),
 });
 
 export const wallets = sqliteTable('wallets', {
@@ -207,6 +219,15 @@ export const vocabulary = sqliteTable('vocabulary', {
   targetType: text('target_type', { enum: ['category', 'wallet', 'person'] }).notNull(),
   targetId: text('target_id').notNull(),
   hits: integer('hits').notNull().default(0),
+});
+
+/**
+ * Device-only record of one-off alerts already sent (budget 80%, goal 50%, ...), so each fires
+ * once. Not synced: another device keeps its own.
+ */
+export const alertLog = sqliteTable('alert_log', {
+  key: text('key').primaryKey(),
+  sentAt: timestamp('sent_at').notNull(),
 });
 
 export type Profile = typeof profile.$inferSelect;

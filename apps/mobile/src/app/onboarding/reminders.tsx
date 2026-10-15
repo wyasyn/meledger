@@ -11,10 +11,7 @@ import { finishOnboarding } from '@/features/onboarding/finish';
 import { OnboardingStep } from '@/features/onboarding/OnboardingStep';
 import { useOnboarding } from '@/features/onboarding/store';
 import { showPermissionSheet } from '@/features/permissions/store';
-import {
-  requestNotificationPermission,
-  scheduleDailyReminder,
-} from '@/features/reminders/notifications';
+import { requestNotificationPermission } from '@/features/reminders/notifications';
 import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
 const TIMES = ['07:00', '12:00', '18:00', '20:00', '21:00'];
@@ -43,10 +40,10 @@ export default function RemindersStep() {
   const finish = async () => {
     setSaving(true);
     try {
-      // The reminder starts switched on, so the permission may not have been asked yet.
-      if (useOnboarding.getState().reminderOn) {
-        if (await requestNotificationPermission()) await scheduleDailyReminder(reminderTime);
-        else set({ reminderOn: false });
+      // The reminder starts switched on, so the permission may not have been asked yet. Once
+      // onboarding is saved, NotificationSync schedules it.
+      if (useOnboarding.getState().reminderOn && !(await requestNotificationPermission())) {
+        set({ reminderOn: false });
       }
       // Saving flips the onboarding guard; the root stack then restarts on Home.
       await finishOnboarding();

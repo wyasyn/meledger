@@ -3,7 +3,7 @@ import { and, eq, inArray, isNull, not } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { created, newId } from '@/db/ids';
-import { transactions, transactionTags } from '@/db/schema';
+import { profile, transactions, transactionTags } from '@/db/schema';
 
 /** Columns written from the form; transfer-only and category fields are cleared when unused. */
 function columns(input: TransactionInput) {
@@ -36,6 +36,12 @@ export async function createTransaction(
 ): Promise<string> {
   const id = newId();
   const stamps = created();
+  // Transcripts are kept only while the privacy setting allows it.
+  const [settings] = await db
+    .select({ storeTranscripts: profile.storeTranscripts })
+    .from(profile)
+    .limit(1);
+  const transcript = settings?.storeTranscripts === false ? null : (voice?.transcript ?? null);
   db.transaction((tx) => {
     tx.insert(transactions)
       .values({
@@ -43,7 +49,7 @@ export async function createTransaction(
         ...stamps,
         ...columns(input),
         source,
-        transcript: voice?.transcript ?? null,
+        transcript,
         confidence: voice?.confidence ?? null,
         debtId,
       })

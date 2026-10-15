@@ -1,5 +1,5 @@
 import { computeLedger, type LedgerTransaction } from '@meledger/shared';
-import { and, asc, desc, eq, isNull } from 'drizzle-orm';
+import { asc, desc, isNull } from 'drizzle-orm';
 import { useMemo } from 'react';
 
 import { db } from '@/db/client';
@@ -38,7 +38,8 @@ async function loadLedger(): Promise<LedgerData> {
     db
       .select()
       .from(categories)
-      .where(and(isNull(categories.deletedAt), eq(categories.hidden, false)))
+      // Hidden ones too: past entries keep their category; pickers leave hidden ones out.
+      .where(isNull(categories.deletedAt))
       .orderBy(asc(categories.sort), asc(categories.name)),
     db.select().from(tags).where(isNull(tags.deletedAt)).orderBy(asc(tags.name)),
     db

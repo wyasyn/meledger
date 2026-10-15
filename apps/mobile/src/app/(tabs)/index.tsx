@@ -22,6 +22,8 @@ import { PeriodSheet } from '@/features/home/components/PeriodSheet';
 import { WalletStrip } from '@/features/home/components/WalletStrip';
 import { periodChipLabel, periodLabel } from '@/features/home/logic';
 import { useHomeStore } from '@/features/home/store';
+import { useProfile } from '@/features/profile/repo';
+import { MASK, useBalancesRevealed } from '@/features/security/balances';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { groupByDay } from '@/features/transactions/logic';
 import { useLedger, useLedgerData } from '@/features/transactions/useLedgerData';
@@ -36,13 +38,21 @@ export default function HomeScreen() {
   const setPeriod = useHomeStore((s) => s.setPeriod);
   const periodSheet = useRef<SheetRef>(null);
   const walletId = useHomeStore((s) => s.walletId);
+  const profile = useProfile();
+  const revealed = useBalancesRevealed((s) => s.revealed);
+  const setRevealed = useBalancesRevealed((s) => s.setRevealed);
+  // Settings > Security > Hide balances: dots until the balance is tapped, again after leaving.
+  const hidden = !!profile?.hideBalances && !revealed;
 
   // The gradient header sits under the status bar, so use light icons while Home is focused.
   useFocusEffect(
     useCallback(() => {
       setStatusBarStyle('light');
-      return () => setStatusBarStyle('dark');
-    }, []),
+      return () => {
+        setStatusBarStyle('dark');
+        setRevealed(false);
+      };
+    }, [setRevealed]),
   );
 
   const view = useMemo(() => {
@@ -82,12 +92,19 @@ export default function HomeScreen() {
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <>
-            <BalanceHeader balance={view.balance} weekChange={view.weekChange} />
+            <BalanceHeader
+              balance={view.balance}
+              weekChange={view.weekChange}
+              hidden={hidden}
+              canHide={!!profile?.hideBalances}
+              onToggleHidden={() => setRevealed(!revealed)}
+            />
             <View style={styles.sheet}>
               <MoneyCards
                 periodLabel={label}
                 income={view.totals.income}
                 expense={view.totals.expense}
+                hidden={hidden}
               />
               <InsightBar />
               <View style={styles.group}>
@@ -126,8 +143,7 @@ export default function HomeScreen() {
             <Text variant="caption" tone="muted">
               Total{' '}
               <Text variant="label" style={styles.tabular}>
-                {section.total > 0 ? '+' : ''}
-                {formatMoney(section.total)}
+                {hidden ? MASK : `${section.total > 0 ? '+' : ''}${formatMoney(section.total)}`}
               </Text>
             </Text>
           </View>
@@ -147,6 +163,7 @@ export default function HomeScreen() {
                   return tag ? [tag] : [];
                 })}
                 balanceAfter={ledger.balanceAfter.get(tx.id)}
+                hideAmounts={hidden}
               />
             </View>
           );

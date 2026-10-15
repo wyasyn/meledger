@@ -7,6 +7,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
 import { showSnackbar } from '@/features/feedback/snackbar';
+import { MASK } from '@/features/security/balances';
 import { lightColors, radius, shadow, spacing } from '@/theme/tokens';
 
 interface MoneyCardsProps {
@@ -14,10 +15,12 @@ interface MoneyCardsProps {
   periodLabel: string;
   income: number;
   expense: number;
+  /** Amounts show as dots (Hide balances). */
+  hidden: boolean;
 }
 
 /** "Your Money": income and expenses for the selected period. */
-export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
+export function MoneyCards({ periodLabel, income, expense, hidden }: MoneyCardsProps) {
   return (
     <View style={styles.root}>
       <SectionHeader
@@ -31,6 +34,7 @@ export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
           color={lightColors.income}
           container={lightColors.incomeContainer}
           amount={income}
+          hidden={hidden}
           info={`Money received during ${periodLabel}, across all wallets.`}
         />
         <MoneyCard
@@ -39,6 +43,7 @@ export function MoneyCards({ periodLabel, income, expense }: MoneyCardsProps) {
           color={lightColors.expense}
           container={lightColors.expenseContainer}
           amount={expense}
+          hidden={hidden}
           info={`Money spent during ${periodLabel}, including transfer fees.`}
         />
       </View>
@@ -53,9 +58,10 @@ interface MoneyCardProps {
   container: string;
   amount: number;
   info: string;
+  hidden: boolean;
 }
 
-function MoneyCard({ label, icon, color, container, amount, info }: MoneyCardProps) {
+function MoneyCard({ label, icon, color, container, amount, info, hidden }: MoneyCardProps) {
   return (
     <View style={styles.card}>
       <View style={[styles.tile, { backgroundColor: container }]}>
@@ -75,13 +81,15 @@ function MoneyCard({ label, icon, color, container, amount, info }: MoneyCardPro
       <View
         style={styles.amountRow}
         accessible
-        accessibilityLabel={`${label} UGX ${formatAmount(amount, 'UGX')}`}
+        accessibilityLabel={
+          hidden ? `${label} hidden` : `${label} UGX ${formatAmount(amount, 'UGX')}`
+        }
       >
         <Text variant="caption" tone="muted">
           UGX
         </Text>
         <Text variant="amount" numberOfLines={1} adjustsFontSizeToFit style={styles.flex}>
-          {formatAmount(amount, 'UGX')}
+          {hidden ? MASK : formatAmount(amount, 'UGX')}
         </Text>
       </View>
     </View>

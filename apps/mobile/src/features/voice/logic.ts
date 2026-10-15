@@ -34,6 +34,7 @@ interface ContextCategory {
   id: string;
   name: string;
   kind: 'income' | 'expense';
+  hidden?: boolean;
 }
 
 /** Local calendar day as `YYYY-MM-DD` (the parser's date format). */
@@ -52,7 +53,10 @@ export function buildParseContext(
   return {
     today: isoDay(now),
     wallets: active.map(({ id, name, type, provider }) => ({ id, name, type, provider })),
-    categories: categories.map(({ id, name, kind }) => ({ id, name, kind })),
+    // Hidden categories are never matched from speech.
+    categories: categories
+      .filter((c) => !c.hidden)
+      .map(({ id, name, kind }) => ({ id, name, kind })),
     vocabulary,
     defaultWalletId: defaultWalletId ?? active[0]?.id ?? null,
   };
