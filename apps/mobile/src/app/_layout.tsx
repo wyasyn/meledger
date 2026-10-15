@@ -15,6 +15,7 @@ import { useDatabaseReady } from '@/db/useDatabaseReady';
 import { registerDevTools } from '@/features/dev/devMenu';
 import { PermissionSheetHost } from '@/features/permissions/PermissionSheet';
 import { useProfile } from '@/features/profile/repo';
+import { AddPlanSheetHost } from '@/features/plan/components/AddPlanSheet';
 import { VoiceSheetHost } from '@/features/voice/components/VoiceSheet';
 import { appFonts } from '@/theme/fonts';
 import { lightColors, spacing } from '@/theme/tokens';
@@ -49,6 +50,7 @@ export default function RootLayout() {
             )}
             {/* Before the permission host, so its sheet can stack on top of the voice sheet. */}
             <VoiceSheetHost />
+            <AddPlanSheetHost />
             <PermissionSheetHost />
             {splashDone ? null : <AnimatedSplash onDone={() => setSplashDone(true)} />}
           </BottomSheetModalProvider>
@@ -74,18 +76,13 @@ function AppStack() {
         <Stack.Screen name="wallets/[id]" />
         <Stack.Screen name="report/[id]" />
         <Stack.Screen name="goals/index" />
-        <Stack.Screen name="goals/new" />
         <Stack.Screen name="goals/[id]" />
         <Stack.Screen name="budgets/index" />
-        <Stack.Screen name="budgets/new" />
         <Stack.Screen name="budgets/[id]" />
-        <Stack.Screen name="bills/new" />
         <Stack.Screen name="bills/[id]" />
         <Stack.Screen name="debts/index" />
-        <Stack.Screen name="debts/new" />
         <Stack.Screen name="debts/[id]/index" />
         <Stack.Screen name="debts/[id]/edit" />
-        <Stack.Screen name="groups/new" />
         <Stack.Screen name="groups/archived" />
         <Stack.Screen name="groups/[id]/index" />
         <Stack.Screen name="groups/[id]/edit" />

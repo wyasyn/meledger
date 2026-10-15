@@ -27,6 +27,7 @@ import {
   deleteGoal,
   setCategoryBudget,
 } from '@/features/plan/repo';
+import { openAddPlan } from '@/features/plan/addSheet';
 import { usePlanData } from '@/features/plan/usePlanData';
 import { CategoryPickerSheet } from '@/features/transactions/components/CategoryPickerSheet';
 import type { LedgerData } from '@/features/transactions/useLedgerData';
@@ -262,7 +263,7 @@ export function CommandReview({
               label="Create a goal"
               onPress={() => {
                 onDone();
-                router.push('/goals/new');
+                openAddPlan('goal');
               }}
               style={styles.grow}
             />

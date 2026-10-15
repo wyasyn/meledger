@@ -14,6 +14,7 @@ import { MoneySheet } from '@/features/plan/components/MoneySheet';
 import { goalProgress, savedByGoal } from '@/features/plan/logic';
 import { addContribution, deleteGoal, restoreGoal } from '@/features/plan/repo';
 import { usePlanData } from '@/features/plan/usePlanData';
+import { openAddPlan } from '@/features/plan/addSheet';
 import { lightColors, spacing } from '@/theme/tokens';
 
 /** Every goal (View all on the Plan tab). */
@@ -35,7 +36,7 @@ export default function GoalsScreen() {
             icon="plus"
             label="Add goal"
             variant="dark"
-            onPress={() => router.push('/goals/new')}
+            onPress={() => openAddPlan('goal')}
           />
         }
       />

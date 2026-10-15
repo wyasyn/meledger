@@ -1,6 +1,6 @@
 import { formatMoney } from '@meledger/shared';
 import { format } from 'date-fns';
-import { type Href, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Share, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -11,7 +11,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
-import { Menu } from '@/components/ui/Menu';
 import { Badge, ProgressRing } from '@/components/ui/Progress';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -45,18 +44,11 @@ import {
   restoreRecurring,
   setRecurringDue,
 } from '@/features/plan/repo';
+import { openAddPlan, type PlanKind } from '@/features/plan/addSheet';
 import { usePlanData, usePlanTransactions } from '@/features/plan/usePlanData';
 import { useLedgerData } from '@/features/transactions/useLedgerData';
 import { openRecurringSheet } from '@/features/voice/store';
 import { lightColors, paletteColor, spacing } from '@/theme/tokens';
-
-const ADD_ITEMS = [
-  { value: '/goals/new', label: 'Goal', icon: 'target' },
-  { value: '/budgets/new', label: 'Budget', icon: 'report' },
-  { value: '/bills/new', label: 'Recurring bill', icon: 'repeat' },
-  { value: '/debts/new', label: 'Debt or loan', icon: 'debt' },
-  { value: '/groups/new', label: 'Savings group', icon: 'group' },
-] as const;
 
 /** Goals shown on the Plan tab; the rest are under View all. */
 const GOALS_SHOWN = 2;
@@ -122,13 +114,11 @@ export default function PlanScreen() {
         title="My Plan"
         right={
           <View style={styles.headerActions}>
-            <Menu
-              items={ADD_ITEMS}
-              onSelect={(href) => router.push(href as Href)}
-              accessibilityLabel="Add to your plan"
-              anchor={(open) => (
-                <IconButton icon="plus" label="Add to your plan" variant="dark" onPress={open} />
-              )}
+            <IconButton
+              icon="plus"
+              label="Add to your plan"
+              variant="dark"
+              onPress={() => openAddPlan()}
             />
             <IconButton
               icon="share"
@@ -156,7 +146,7 @@ export default function PlanScreen() {
               title="Save for something"
               body="Set a target and a date. MeLedger shows if you're on schedule."
               label="Add a goal"
-              href="/goals/new"
+              kind="goal"
             />
           ) : (
             activeGoals.slice(0, GOALS_SHOWN).map((goal, i) => (
@@ -188,7 +178,7 @@ export default function PlanScreen() {
               title="Keep spending in check"
               body="Set a limit for a category, per month, per week or for your own dates."
               label="Add a budget"
-              href="/budgets/new"
+              kind="budget"
             />
           ) : (
             plan.budgets.slice(0, BUDGETS_SHOWN).map((budget) => {
@@ -233,7 +223,7 @@ export default function PlanScreen() {
               title="Never miss rent or Yaka"
               body="Add bills that come back. You confirm each one when it's due."
               label="Add a bill"
-              href="/bills/new"
+              kind="bill"
             />
           ) : (
             plan.recurring.map((rule) => {
@@ -286,7 +276,7 @@ export default function PlanScreen() {
               title="Who owes whom"
               body='Track money you lent or borrowed. Say "lent Musa 100k" or add it here.'
               label="Add a debt or loan"
-              href="/debts/new"
+              kind="debt"
             />
           ) : (
             openDebts.map((debt) => {
@@ -339,7 +329,7 @@ export default function PlanScreen() {
               title="SACCO, VSLA or chama"
               body="Track your contributions and when it's your turn to receive."
               label="Add a savings group"
-              href="/groups/new"
+              kind="group"
             />
           ) : (
             groups.map((group) => {
@@ -504,13 +494,13 @@ function AddCard({
   title,
   body,
   label,
-  href,
+  kind,
 }: {
   icon: string;
   title: string;
   body: string;
   label: string;
-  href: Href;
+  kind: PlanKind;
 }) {
   return (
     <Card style={styles.addCard}>
@@ -524,7 +514,7 @@ function AddCard({
             icon="plus"
             variant="secondary"
             size="sm"
-            onPress={() => router.push(href)}
+            onPress={() => openAddPlan(kind)}
           />
         }
       />

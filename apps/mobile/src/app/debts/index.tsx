@@ -11,6 +11,7 @@ import type { Debt } from '@/db/schema';
 import { debtBalance } from '@/features/plan/logic';
 import { usePlanData, usePlanTransactions } from '@/features/plan/usePlanData';
 import { useLedgerData } from '@/features/transactions/useLedgerData';
+import { openAddPlan } from '@/features/plan/addSheet';
 import { lightColors, spacing } from '@/theme/tokens';
 
 /** Open and settled debts. */
@@ -54,7 +55,7 @@ export default function DebtsScreen() {
             icon="plus"
             label="Add debt or loan"
             variant="dark"
-            onPress={() => router.push('/debts/new')}
+            onPress={() => openAddPlan('debt')}
           />
         }
       />

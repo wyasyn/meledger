@@ -11,6 +11,7 @@ import { PlanRow } from '@/features/plan/components/PlanRow';
 import { budgetPeriodLabel, budgetStatus } from '@/features/plan/logic';
 import { usePlanData, usePlanTransactions } from '@/features/plan/usePlanData';
 import { useLedgerData } from '@/features/transactions/useLedgerData';
+import { openAddPlan } from '@/features/plan/addSheet';
 import { lightColors, paletteColor, spacing } from '@/theme/tokens';
 
 /** Every budget (View all on the Plan tab). */
@@ -32,7 +33,7 @@ export default function BudgetsScreen() {
             icon="plus"
             label="Add budget"
             variant="dark"
-            onPress={() => router.push('/budgets/new')}
+            onPress={() => openAddPlan('budget')}
           />
         }
       />
