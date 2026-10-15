@@ -310,6 +310,46 @@ export const KEYWORDS: Record<CategoryKind, readonly Keyword[]> = {
 export const FALLBACK_INCOME_CATEGORY = 'Other';
 export const MOBILE_MONEY_FEES_CATEGORY = 'Mobile money fees';
 
+/**
+ * Words the speech recognizer hears in place of local ones ("paid soccer 50k"). Each heard
+ * word sequence is replaced before parsing. Only phrases with no money meaning of their own.
+ */
+export const MISHEARD: readonly { heard: readonly string[]; meant: readonly string[] }[] = [
+  { heard: ['soccer'], meant: ['sacco'] },
+  { heard: ['sacca'], meant: ['sacco'] },
+  { heard: ['saccos'], meant: ['sacco'] },
+  { heard: ['border', 'border'], meant: ['boda', 'boda'] },
+  { heard: ['border'], meant: ['boda'] },
+  { heard: ['boarder'], meant: ['boda'] },
+  { heard: ['new', 'york'], meant: ['new', 'goal'] },
+  { heard: ['for', 'budget'], meant: ['food', 'budget'] },
+];
+
+/**
+ * Words passed to the speech recognizer as hints (Android 13+ only), so local words are heard
+ * as themselves.
+ */
+export const SPEECH_HINTS: readonly string[] = [
+  'boda',
+  'boda boda',
+  'sacco',
+  'momo',
+  'MTN MoMo',
+  'Airtel Money',
+  'yaka',
+  'rolex',
+  'matooke',
+  'posho',
+  'chapati',
+  'airtime',
+  'budget',
+  'food budget',
+  'new goal',
+  'school fees',
+  'NWSC',
+  'kwanjula',
+];
+
 /** Words that name a kind of wallet. Matched against the user's wallets by provider, then type. */
 export const WALLET_WORDS: { words: readonly string[]; provider?: string; type?: string }[] = [
   { words: ['mtn', 'momo'], provider: 'mtn', type: 'mobile_money' },

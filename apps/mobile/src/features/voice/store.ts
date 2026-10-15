@@ -30,7 +30,12 @@ export interface RecurringLog {
  * or logging a recurring bill from its template.
  */
 export type VoiceSheetRequest =
-  | { mode: 'listen'; walletId: string | null }
+  | {
+      mode: 'listen';
+      walletId: string | null;
+      /** Development only: handled as if this had been spoken, without the microphone. */
+      simulated?: string;
+    }
   | { mode: 'edit'; transactionId: string }
   | { mode: 'recurring'; bill: RecurringLog };
 
@@ -53,6 +58,10 @@ export const useVoiceSheet = create<VoiceSheetState>((set) => ({
  */
 export const openVoiceSheet = (walletId: string | null = null) =>
   useVoiceSheet.getState().open({ mode: 'listen', walletId });
+
+/** Development only: opens the voice sheet as if `text` had been spoken. */
+export const simulateVoice = (text: string) =>
+  useVoiceSheet.getState().open({ mode: 'listen', walletId: null, simulated: text });
 
 /** Opens an existing entry in the same sheet, as an editable card. */
 export const openEntrySheet = (transactionId: string) =>

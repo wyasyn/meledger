@@ -1,8 +1,17 @@
 import { registerDevMenuItems } from 'expo-dev-menu';
 
 import { showSnackbar } from '@/features/feedback/snackbar';
+import { simulateVoice } from '@/features/voice/store';
 
 import { addSampleData, removeSampleData } from './sampleData';
+
+/** Lines the voice sheet can take as if spoken (emulators have no microphone). */
+const VOICE_TESTS = [
+  'paid boda 5k and lunch 12k cash',
+  'paid sacco 50k',
+  'set food budget 300k',
+  'new goal laptop 2 million by December',
+];
 
 /**
  * Development builds only: extra entries in the Expo dev menu (shake the phone or press "m" in
@@ -28,5 +37,10 @@ export function registerDevTools(): void {
         removeSampleData().then(() => showSnackbar({ message: 'Sample entries and plan removed' }));
       },
     },
+    ...VOICE_TESTS.map((text) => ({
+      name: `MeLedger voice: "${text}"`,
+      shouldCollapse: true,
+      callback: () => simulateVoice(text),
+    })),
   ]);
 }

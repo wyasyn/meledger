@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { CATEGORY_SEEDS } from '../categories';
-import { localParse, ParseResultSchema, type ParseContext, type ParsedItem } from './index';
+import {
+  localParse,
+  ParseResultSchema,
+  pickTranscript,
+  type ParseContext,
+  type ParsedItem,
+} from './index';
 
 const ctx: ParseContext = {
   today: '2026-10-14', // a Wednesday
@@ -387,5 +393,55 @@ describe('localParse: commands', () => {
   it('returns unknown for lines with nothing to log', () => {
     expect(localParse('hello there', ctx).intent).toBe('unknown');
     expect(localParse('', ctx).intent).toBe('unknown');
+  });
+});
+
+describe('localParse: words the recognizer mishears', () => {
+  it.each([
+    ['paid soccer 50k', { categoryId: cat('Savings group/SACCO'), amount: 50_000 }],
+    ['paid border 5k', { categoryId: cat('Boda/Taxi'), amount: 5_000 }],
+    ['border border 3k', { categoryId: cat('Boda/Taxi'), amount: 3_000 }],
+  ] as const)('%s', (text, expected) => {
+    expect(items(text)[0]).toMatchObject(expected);
+  });
+
+  it('hears "new york" as a new goal', () => {
+    expect(localParse('new york laptop 2 million', ctx)).toMatchObject({
+      intent: 'set_goal',
+      command: { amount: 2_000_000, text: 'Laptop' },
+    });
+  });
+
+  it('hears "for budget" as the food budget', () => {
+    expect(localParse('set for budget 300k', ctx)).toMatchObject({
+      intent: 'set_budget',
+      command: { amount: 300_000, categoryId: cat('Groceries') },
+    });
+  });
+
+  it('keeps "for" elsewhere', () => {
+    expect(items('lunch for 2 people 20k')[0]?.categoryId).toBe(cat('Eating out'));
+  });
+});
+
+describe('pickTranscript', () => {
+  it('keeps the first alternative when it is understood', () => {
+    expect(pickTranscript(['lunch 12k cash', 'launch 12k cash'], ctx)).toBe('lunch 12k cash');
+  });
+
+  it('takes a clearly better alternative', () => {
+    expect(pickTranscript(['said food budget 300k', 'set food budget 300k'], ctx)).toBe(
+      'set food budget 300k',
+    );
+    expect(pickTranscript(['paid bodo 5k', 'paid boda 5k'], ctx)).toBe('paid boda 5k');
+  });
+
+  it('keeps the first alternative on a small difference', () => {
+    expect(pickTranscript(['zzz 10k', 'zzz 10k cash'], ctx)).toBe('zzz 10k');
+  });
+
+  it('skips empty alternatives', () => {
+    expect(pickTranscript(['', 'lunch 5k'], ctx)).toBe('lunch 5k');
+    expect(pickTranscript([], ctx)).toBe('');
   });
 });

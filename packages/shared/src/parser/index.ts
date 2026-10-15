@@ -8,6 +8,7 @@ import {
   INCOME_PHRASES,
   INCOME_WORDS,
   KEYWORDS,
+  MISHEARD,
   MOBILE_MONEY_FEES_CATEGORY,
   STOP_WORDS,
   TRANSFER_WORDS,
@@ -34,6 +35,7 @@ import {
 export * from './types';
 export { addDays } from './dates';
 export { tokenize } from './tokens';
+export { SPEECH_HINTS } from './lexicon';
 
 /** A token index range the parser has claimed, so later passes skip it. */
 type Claimed = Set<number>;
@@ -841,12 +843,68 @@ function readIntent(tokens: readonly string[], ctx: ParseContext): ParseIntent {
   return amount || weakWithVerb || has(tokens, ['lent', 'borrowed', 'repaid']) ? 'log' : 'unknown';
 }
 
+/** Replaces what the recognizer commonly hears in place of local words ("soccer" for "sacco"). */
+function fixMisheard(tokens: readonly string[]): string[] {
+  const out: string[] = [];
+  outer: for (let i = 0; i < tokens.length;) {
+    for (const { heard, meant } of MISHEARD) {
+      if (heard.every((w, k) => tokens[i + k] === w)) {
+        out.push(...meant);
+        i += heard.length;
+        continue outer;
+      }
+    }
+    out.push(tokens[i]!);
+    i += 1;
+  }
+  return out;
+}
+
+/** How much of a line the parser understood: intent, amounts and categories. */
+function understood(result: ParseResult): number {
+  switch (result.intent) {
+    case 'unknown':
+      return 0;
+    case 'question':
+      return result.question ? 2 + (result.question.categoryId ? 1 : 0) : 1;
+    case 'log':
+      return (
+        (result.confident ? 1 : 0) +
+        result.items.reduce(
+          (sum, item) => sum + 1 + (item.categoryId ? 1 : 0) - item.uncertain.length * 0.25,
+          0,
+        )
+      );
+    default:
+      return 3 + (result.command?.amount !== null ? 1 : 0) + (result.command?.categoryId ? 1 : 0);
+  }
+}
+
+/**
+ * Picks among the recognizer's alternative transcripts (most likely first) the one the parser
+ * understands. Another alternative only replaces the first when it is clearly better.
+ */
+export function pickTranscript(alternatives: readonly string[], ctx: ParseContext): string {
+  const [first, ...rest] = alternatives.filter((a) => a.trim() !== '');
+  if (first === undefined) return '';
+  let best = first;
+  let bestScore = understood(localParse(first, ctx)) + 1;
+  for (const alt of rest) {
+    const score = understood(localParse(alt, ctx));
+    if (score > bestScore) {
+      best = alt;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
 /**
  * Parses a spoken or typed line into transactions, a question or a command, offline and
  * synchronously (build prompt section 6.1).
  */
 export function localParse(text: string, ctx: ParseContext): ParseResult {
-  const tokens = tokenize(text);
+  const tokens = fixMisheard(tokenize(text));
   const intent = readIntent(tokens, ctx);
   const result: ParseResult = {
     intent,

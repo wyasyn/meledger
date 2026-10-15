@@ -12,7 +12,13 @@ import {
 import * as Haptics from 'expo-haptics';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { LinearGradient } from 'expo-linear-gradient';
-import { formatMoney, localParse, type ParsedCommand, type ParseResult } from '@meledger/shared';
+import {
+  formatMoney,
+  localParse,
+  type ParsedCommand,
+  type ParseResult,
+  pickTranscript,
+} from '@meledger/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
@@ -163,7 +169,11 @@ function VoicePanel() {
   const { animatedPosition, snapToIndex } = useBottomSheet();
   const { animatedLayoutState, animatedDetentsState } = useBottomSheetInternal();
   const { dismiss } = useBottomSheetModal();
-  const { status, transcript, level, error, start, stop, cancel } = useSpeechSession();
+  const speech = useSpeechSession();
+  const { status, segments, level, error, start, stop, cancel, simulate } = speech;
+  // What the parser understood, from the recognizer's alternatives; set once parsed.
+  const [picked, setPicked] = useState('');
+  const transcript = picked || speech.transcript;
   const holding = useVoiceHold((s) => s.holding);
   const startedByHold = useRef(holding);
   const data = useLedgerData();
@@ -298,8 +308,15 @@ function VoicePanel() {
         now,
         preferredWallet,
       );
-      const result = localParse(transcript, ctx);
-      if (!cancelled) setOutcome(outcomeFor(result, now));
+      // Each finished phrase came with alternatives; take the one the parser understands.
+      const text =
+        segments.length > 0
+          ? segments.map((alternatives) => pickTranscript(alternatives, ctx)).join(' ')
+          : speech.transcript;
+      const result = localParse(text, ctx);
+      if (cancelled) return;
+      setPicked(text);
+      setOutcome(outcomeFor(result, now));
     }, THINK_MS);
     return () => {
       cancelled = true;
@@ -317,7 +334,12 @@ function VoicePanel() {
   const orbSize = Math.min(width * 0.8, 340);
 
   const begin = async () => {
-    const result = await start();
+    if (request.mode === 'listen' && request.simulated && __DEV__) {
+      simulate(request.simulated);
+      return;
+    }
+    // Held from the tab bar: listen until release. Tapped: stop by itself after a pause.
+    const result = await start(startedByHold.current);
     if (result === 'denied') showPermissionSheet('microphone');
   };
 
@@ -342,6 +364,7 @@ function VoicePanel() {
     if (listening) stop();
     else {
       setOutcome({ kind: 'none' });
+      setPicked('');
       begin();
     }
   };
@@ -438,14 +461,19 @@ function VoicePanel() {
         : status === 'error'
           ? (error?.message ?? 'Something went wrong. Try again.')
           : listening
-            ? 'Tap the mic when you are done'
+            ? holding
+              ? 'Let go when you are done'
+              : 'I stop when you pause, or tap the mic'
             : thinking
               ? 'Working it out…'
               : 'Say something like "lunch 12k cash", or tap the keyboard to type';
 
+  // The review screens are plain views, not BottomSheetView: a BottomSheetView registers itself
+  // with the sheet as non-scrolling content, which can override the review's scroll view and
+  // turn every swipe on the cards into a drag of the sheet.
   if (shown.kind === 'command' && data) {
     return (
-      <BottomSheetView style={styles.root}>
+      <View style={styles.root}>
         <Animated.View style={[styles.review, reviewStyle]}>
           <CommandReview
             intent={shown.intent}
@@ -457,13 +485,13 @@ function VoicePanel() {
             onDone={close}
           />
         </Animated.View>
-      </BottomSheetView>
+      </View>
     );
   }
 
   if (shown.kind === 'review' && data) {
     return (
-      <BottomSheetView style={styles.root}>
+      <View style={styles.root}>
         <Animated.View style={[styles.review, reviewStyle]}>
           <VoiceReview
             footerStyle={footerStyle}
@@ -478,7 +506,7 @@ function VoicePanel() {
             onDone={close}
           />
         </Animated.View>
-      </BottomSheetView>
+      </View>
     );
   }
 
