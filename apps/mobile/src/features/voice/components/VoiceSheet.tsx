@@ -467,6 +467,16 @@ function VoicePanel() {
     );
   }
 
+  // Opening an entry or a bill: until its data has loaded there is nothing to show, and the
+  // voice view (orb and mic) would flash before the entry's card.
+  if (editing && !data) {
+    return (
+      <BottomSheetView style={styles.root}>
+        <View />
+      </BottomSheetView>
+    );
+  }
+
   return (
     <BottomSheetView style={styles.root}>
       {/* Fixed at the full sheet height: the sheet's own view resizes while dragging, and
