@@ -1,7 +1,7 @@
 import type { Tabs } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/Icon';
@@ -25,6 +25,8 @@ const PILL_GAP = spacing.sm;
 export const TAB_BAR_HEIGHT = PILL_HEIGHT + PILL_GAP;
 /** How far the fade behind the bar reaches above it. */
 const FADE_EXTRA = 40;
+/** Below this width (dp) the bar tightens its margins and icons so the labels keep their room. */
+const COMPACT_WIDTH = 360;
 
 /**
  * Floating pill of tabs with the mic in its own circle on the right, drawn over the
@@ -32,6 +34,8 @@ const FADE_EXTRA = 40;
  */
 export function TabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const compact = width < COMPACT_WIDTH;
   const setHolding = useVoiceHold((s) => s.setHolding);
   const bottom = insets.bottom + PILL_GAP;
 
@@ -52,7 +56,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
         />
       </View>
       <Toast bottom={bottom + PILL_HEIGHT + spacing.md} />
-      <View style={[styles.row, { bottom }]}>
+      <View style={[styles.row, compact && styles.rowCompact, { bottom }]}>
         <View style={[styles.pill, styles.shadow]}>
           {state.routes.map((route, index) => {
             const spec = TABS[route.name];
@@ -86,12 +90,16 @@ export function TabBar({ state, navigation }: TabBarProps) {
                 <Icon
                   name={spec.icon}
                   weight={focused ? 'fill' : 'regular'}
-                  size={24}
+                  size={compact ? 22 : 24}
                   color={color}
                 />
+                {/* Shrinks rather than cutting off on narrow phones or with a large system font. */}
                 <Text
                   variant="micro"
                   numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                  maxFontSizeMultiplier={1.3}
                   color={color}
                   style={focused && styles.labelActive}
                 >
@@ -124,6 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  rowCompact: { left: spacing.md, right: spacing.md, gap: spacing.sm },
   pill: {
     flex: 1,
     flexDirection: 'row',
@@ -137,6 +146,8 @@ const styles = StyleSheet.create({
   shadow: { boxShadow: '0 8px 24px rgba(0,0,0,0.12)' },
   item: {
     flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,

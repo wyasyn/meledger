@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { Text } from '@/components/ui/Text';
 import { useDatabaseReady } from '@/db/useDatabaseReady';
+import { registerDevTools } from '@/features/dev/devMenu';
 import { PermissionSheetHost } from '@/features/permissions/PermissionSheet';
 import { useProfile } from '@/features/profile/repo';
 import { VoiceSheetHost } from '@/features/voice/components/VoiceSheet';
@@ -19,6 +20,7 @@ import { appFonts } from '@/theme/fonts';
 import { lightColors, spacing } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
+registerDevTools();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(appFonts);

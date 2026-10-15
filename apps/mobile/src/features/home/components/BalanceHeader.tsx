@@ -1,6 +1,7 @@
 import { formatAmount, formatMoney } from '@meledger/shared';
 import { startOfMonth, subMonths } from 'date-fns';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -50,9 +51,13 @@ export function BalanceHeader({ balance, weekChange }: BalanceHeaderProps) {
       style={[styles.root, { paddingTop: insets.top + spacing.sm }]}
     >
       <View style={styles.topRow}>
-        <View style={styles.avatar} accessible accessibilityLabel="Profile">
-          <Icon name="user" weight="fill" size={22} color={WHITE} />
-        </View>
+        {/* Same style as the bell; the profile lives under Settings. */}
+        <IconButton
+          icon="user"
+          label="Profile and settings"
+          variant="glass"
+          onPress={() => router.navigate('/settings')}
+        />
         <Menu
           items={items}
           selected={selected}
@@ -118,14 +123,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl + spacing.xxxl + spacing.lg,
   },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: WHITE_FILL,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   monthPill: {
     flexDirection: 'row',
     alignItems: 'center',
