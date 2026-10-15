@@ -6,6 +6,20 @@ import { CATEGORY_SEEDS, type CategoryKind } from '../categories';
  */
 const EXPENSE_KEYWORDS: Record<string, readonly string[]> = {
   'Rent/Mortgage': ['rent', 'landlord', 'mortgage', 'obupangisa', 'house rent'],
+  'Land & property': [
+    'land',
+    'plot',
+    'plots',
+    'acre',
+    'acres',
+    'ekibanja',
+    'kibanja',
+    'ettaka',
+    'property',
+    'land title',
+    'title deed',
+    'mailo',
+  ],
   'Electricity (Yaka)': [
     'yaka',
     'umeme',

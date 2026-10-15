@@ -403,6 +403,14 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     color: 'slate',
   },
   {
+    id: 'f312f298-4e48-421f-b8fc-2e89a8dacafa',
+    name: 'Land & property',
+    kind: 'expense',
+    group: 'Assets & investments',
+    icon: 'land',
+    color: 'teal',
+  },
+  {
     id: DEBT_CATEGORY_IDS.lent,
     name: 'Lent out',
     kind: 'expense',

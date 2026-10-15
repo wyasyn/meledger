@@ -58,6 +58,23 @@ const LOG_FIXTURES: [string, Expected[]][] = [
   ['lunch 5000', [{ amount: 5_000 }]],
   ['fuel 1.2m', [{ amount: 1_200_000, categoryId: cat('Fuel') }]],
   ['rent 1.5 million', [{ amount: 1_500_000, categoryId: cat('Rent/Mortgage') }]],
+  // Land and property
+  [
+    'i bought land at 1M yesterday',
+    [
+      {
+        type: 'expense',
+        amount: 1_000_000,
+        categoryId: cat('Land & property'),
+        date: '2026-10-13',
+        note: 'Land',
+      },
+    ],
+  ],
+  ['bought a plot in Mukono 25m', [{ amount: 25_000_000, categoryId: cat('Land & property') }]],
+  ['paid for the kibanja 3m', [{ amount: 3_000_000, categoryId: cat('Land & property') }]],
+  ['land title 800k', [{ amount: 800_000, categoryId: cat('Land & property') }]],
+  ['paid the landlord 400k', [{ amount: 400_000, categoryId: cat('Rent/Mortgage') }]],
   ['matooke fifty thousand', [{ amount: 50_000, categoryId: cat('Groceries') }]],
   ['school fees two hundred k', [{ amount: 200_000, categoryId: cat('School fees') }]],
   ['airtime shs 3000', [{ amount: 3_000, categoryId: cat('Airtime & Data') }]],
