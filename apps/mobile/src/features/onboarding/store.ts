@@ -15,6 +15,8 @@ export interface WalletChoice {
 export interface GoalChoice {
   name: string;
   icon: string;
+  /** Palette key. */
+  color: string;
   target: number;
 }
 

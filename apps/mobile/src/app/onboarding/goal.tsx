@@ -47,7 +47,7 @@ export default function GoalStep() {
                 goal:
                   goal?.name === t.name
                     ? null
-                    : { name: t.name, icon: t.icon, target: goal?.target ?? 0 },
+                    : { name: t.name, icon: t.icon, color: t.color, target: goal?.target ?? 0 },
               })
             }
           />

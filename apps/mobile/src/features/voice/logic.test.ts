@@ -1,7 +1,7 @@
-import { CATEGORY_SEEDS, localParse } from '@meledger/shared';
+import { CATEGORY_SEEDS, DEBT_CATEGORY_IDS, localParse } from '@meledger/shared';
 import { describe, expect, it } from 'vitest';
 
-import { answerQuestion, buildParseContext, learningsFor, toDraft } from './logic';
+import { answerQuestion, buildParseContext, learningsFor, matchGoal, toDraft } from './logic';
 
 const now = new Date(2026, 9, 14, 18, 30); // Wednesday 14 October 2026, 18:30 local
 const wallets = [
@@ -56,9 +56,23 @@ describe('toDraft', () => {
     expect(draft).toMatchObject({ heardUsd: 20, input: { amount: 0 } });
   });
 
-  it('holds loans back until debts exist', () => {
+  it('turns a loan into a debt card with the debt category', () => {
     const [item] = localParse('lent Musa 100k', ctx).items;
-    expect(toDraft(item!, 'a', 'cash', now).savable).toBe(false);
+    const draft = toDraft(item!, 'a', 'cash', now);
+    expect(draft.savable).toBe(true);
+    expect(draft.debt).toEqual({ kind: 'lend', person: 'Musa' });
+    expect(draft.input).toMatchObject({
+      type: 'expense',
+      amount: 100_000,
+      categoryId: DEBT_CATEGORY_IDS.lent,
+    });
+  });
+
+  it('turns "paid me back" into a repayment into a wallet', () => {
+    const [item] = localParse('Musa paid me back 50k', ctx).items;
+    const draft = toDraft(item!, 'a', 'cash', now);
+    expect(draft.debt).toEqual({ kind: 'repaid_to_me', person: 'Musa' });
+    expect(draft.input).toMatchObject({ type: 'income', categoryId: DEBT_CATEGORY_IDS.repaidToMe });
   });
 });
 
@@ -148,5 +162,23 @@ describe('answerQuestion', () => {
   it('reads a wallet balance and the total', () => {
     expect(ask('how much is on momo').text).toBe('You have UGX 50,000 on MTN MoMo.');
     expect(ask("what's my balance").text).toBe('Your balance is UGX 200,000 across all wallets.');
+  });
+});
+
+describe('matchGoal', () => {
+  const goals = [
+    { id: 'l', name: 'Laptop' },
+    { id: 's', name: 'School fees' },
+  ];
+
+  it('picks the goal named in the command', () => {
+    const command = localParse('add 50k to my laptop goal', ctx).command!;
+    expect(matchGoal(command.text, goals)?.id).toBe('l');
+    expect(matchGoal('school fee', goals)?.id).toBe('s');
+  });
+
+  it('falls back to the only goal, or none', () => {
+    expect(matchGoal('something', [goals[0]!])?.id).toBe('l');
+    expect(matchGoal('something', goals)).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatAmount, formatMoney, fromMinor, toMinor } from './money';
+import { formatAmount, formatCompact, formatMoney, fromMinor, toMinor } from './money';
 
 describe('formatMoney', () => {
   it('formats UGX with thousands separators and no decimals', () => {
@@ -37,5 +37,16 @@ describe('toMinor / fromMinor', () => {
     expect(toMinor(0.1 + 0.2, 'USD')).toBe(30);
     expect(fromMinor(1250, 'USD')).toBe(12.5);
     expect(fromMinor(5000, 'UGX')).toBe(5000);
+  });
+});
+
+describe('formatCompact', () => {
+  it('shortens large amounts for chart axes', () => {
+    expect(formatCompact(0)).toBe('0');
+    expect(formatCompact(950)).toBe('950');
+    expect(formatCompact(12_000)).toBe('12k');
+    expect(formatCompact(12_500)).toBe('12.5k');
+    expect(formatCompact(1_250_000)).toBe('1.3M');
+    expect(formatCompact(-3_000)).toBe('-3k');
   });
 });

@@ -1,3 +1,4 @@
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { formatAmount } from '@meledger/shared';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
@@ -24,6 +25,8 @@ interface AmountFieldProps {
   accessibilityLabel?: string;
   /** Grey fill for a field nested inside a white card. */
   inset?: boolean;
+  /** Inside a bottom sheet: uses the sheet's input so the sheet moves with the keyboard. */
+  inSheet?: boolean;
 }
 
 /** Money input with live thousands separators and a grey "UGX" before it. */
@@ -37,8 +40,10 @@ export function AmountField({
   autoFocus = false,
   accessibilityLabel,
   inset = false,
+  inSheet = false,
 }: AmountFieldProps) {
   const [focused, setFocused] = useState(false);
+  const Input = inSheet ? BottomSheetTextInput : TextInput;
   const xl = size === 'xl';
   return (
     <FieldCard
@@ -52,7 +57,7 @@ export function AmountField({
         <Text variant={xl ? 'title' : 'subtitle'} tone="muted">
           UGX
         </Text>
-        <TextInput
+        <Input
           value={value ? formatAmount(value, 'UGX') : ''}
           onChangeText={(text) => onChange(parseAmountInput(text))}
           keyboardType="number-pad"

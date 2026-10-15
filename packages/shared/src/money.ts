@@ -44,3 +44,19 @@ export function formatMoney(minor: number, currency: CurrencyCode = DEFAULT_CURR
   const amount = formatAmount(minor, currency);
   return amount.startsWith('-') ? `-${currency} ${amount.slice(1)}` : `${currency} ${amount}`;
 }
+
+/**
+ * Short whole-unit amount for chart axes: "950", "12k", "1.2M". Rounds to one decimal and drops
+ * a trailing ".0".
+ */
+export function formatCompact(minor: number, currency: CurrencyCode = DEFAULT_CURRENCY): string {
+  const major = fromMinor(minor, currency);
+  const sign = major < 0 ? '-' : '';
+  const abs = Math.abs(major);
+  const scaled = (value: number, suffix: string) =>
+    `${sign}${(Math.round(value * 10) / 10).toString()}${suffix}`;
+  if (abs >= 1_000_000_000) return scaled(abs / 1_000_000_000, 'B');
+  if (abs >= 1_000_000) return scaled(abs / 1_000_000, 'M');
+  if (abs >= 1_000) return scaled(abs / 1_000, 'k');
+  return `${sign}${Math.round(abs)}`;
+}

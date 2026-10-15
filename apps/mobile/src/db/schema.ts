@@ -120,11 +120,14 @@ export const people = sqliteTable('people', {
 export const budgets = sqliteTable('budgets', {
   ...base,
   categoryId: text('category_id').notNull(),
-  period: text('period', { enum: ['monthly'] })
+  period: text('period', { enum: ['monthly', 'weekly', 'custom'] })
     .notNull()
     .default('monthly'),
   limitAmount: integer('limit_amount').notNull(),
   alertAt: integer('alert_at').notNull().default(80),
+  /** Custom budgets only: first day and the day after the last (exclusive). */
+  startsAt: timestamp('starts_at'),
+  endsAt: timestamp('ends_at'),
 });
 
 export const goals = sqliteTable('goals', {
@@ -134,8 +137,9 @@ export const goals = sqliteTable('goals', {
   targetAmount: integer('target_amount').notNull(),
   targetDate: timestamp('target_date'),
   walletId: text('wallet_id'),
-  /** Values are defined with goals in milestone 4. */
-  status: text('status').notNull(),
+  status: text('status', { enum: ['active', 'done', 'archived'] }).notNull(),
+  /** Palette key for the icon tile and progress bar. */
+  color: text('color').notNull().default('teal'),
 });
 
 export const goalContributions = sqliteTable('goal_contributions', {
@@ -148,9 +152,11 @@ export const goalContributions = sqliteTable('goal_contributions', {
 
 export const recurringRules = sqliteTable('recurring_rules', {
   ...base,
-  /** JSON transaction template. */
+  /** What the bill is called ("Rent", "Yaka"). */
+  name: text('name').notNull().default(''),
+  /** JSON transaction template (RecurringTemplate in features/plan/logic.ts). */
   template: text('template').notNull(),
-  frequency: text('frequency').notNull(),
+  frequency: text('frequency', { enum: ['weekly', 'monthly', 'yearly'] }).notNull(),
   nextDueAt: timestamp('next_due_at').notNull(),
   mode: text('mode', { enum: ['auto_log', 'remind'] }).notNull(),
 });
@@ -161,8 +167,29 @@ export const debts = sqliteTable('debts', {
   direction: text('direction', { enum: ['owed_to_me', 'i_owe'] }).notNull(),
   principal: integer('principal').notNull(),
   dueAt: timestamp('due_at'),
-  /** Values are defined with debts in milestone 4. */
-  status: text('status').notNull(),
+  status: text('status', { enum: ['open', 'settled'] }).notNull(),
+  note: text('note'),
+  /** When the money was lent or borrowed. */
+  startedAt: timestamp('started_at'),
+});
+
+/**
+ * A savings group, SACCO or VSLA. Its money lives in its own savings wallet: contributions are
+ * transfers into that wallet and a payout is a transfer out of it.
+ */
+export const savingsGroups = sqliteTable('savings_groups', {
+  ...base,
+  name: text('name').notNull(),
+  walletId: text('wallet_id').notNull(),
+  contributionAmount: integer('contribution_amount').notNull(),
+  frequency: text('frequency', { enum: ['weekly', 'monthly'] }).notNull(),
+  /** JSON array of member names. */
+  members: text('members').notNull().default('[]'),
+  /** The user's place in the payout rotation (1 = first), or null when the group doesn't rotate. */
+  payoutTurn: integer('payout_turn'),
+  /** First contribution day; later ones follow every week or month. */
+  cycleStart: timestamp('cycle_start').notNull(),
+  archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
 });
 
 export const reminders = sqliteTable('reminders', {
@@ -187,3 +214,10 @@ export type Wallet = typeof wallets.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
+export type Person = typeof people.$inferSelect;
+export type Budget = typeof budgets.$inferSelect;
+export type Goal = typeof goals.$inferSelect;
+export type GoalContribution = typeof goalContributions.$inferSelect;
+export type RecurringRule = typeof recurringRules.$inferSelect;
+export type Debt = typeof debts.$inferSelect;
+export type SavingsGroup = typeof savingsGroups.$inferSelect;

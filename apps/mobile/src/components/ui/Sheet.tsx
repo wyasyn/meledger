@@ -7,7 +7,8 @@ import {
 } from '@gorhom/bottom-sheet';
 import { type ReactNode, type Ref, type RefObject, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Easing } from 'react-native-reanimated';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Animated, { Easing, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { lightColors, radius, spacing } from '@/theme/tokens';
@@ -63,6 +64,12 @@ export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: S
     </View>
   );
   const bottom = { paddingBottom: insets.bottom + spacing.lg };
+  // Content-sized sheets grow by the keyboard's height, so a focused field stays above it
+  // (the sheet's own keyboard handling doesn't move it with the app's keyboard controller).
+  const keyboard = useReanimatedKeyboardAnimation();
+  const keyboardSpace = useAnimatedStyle(() => ({
+    height: Math.max(0, -keyboard.height.get() - insets.bottom),
+  }));
   return (
     <BottomSheetModal
       ref={ref}
@@ -95,6 +102,7 @@ export function Sheet({ ref, title, snapPoints, footer, children, onDismiss }: S
           {heading}
           {children}
           {footer ? <View style={styles.footer}>{footer}</View> : null}
+          <Animated.View style={keyboardSpace} />
         </BottomSheetView>
       )}
     </BottomSheetModal>

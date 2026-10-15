@@ -70,6 +70,22 @@ function AppStack() {
         <Stack.Screen name="wallets/index" />
         <Stack.Screen name="wallets/new" />
         <Stack.Screen name="wallets/[id]" />
+        <Stack.Screen name="report/[id]" />
+        <Stack.Screen name="goals/index" />
+        <Stack.Screen name="goals/new" />
+        <Stack.Screen name="goals/[id]" />
+        <Stack.Screen name="budgets/index" />
+        <Stack.Screen name="budgets/new" />
+        <Stack.Screen name="budgets/[id]" />
+        <Stack.Screen name="bills/new" />
+        <Stack.Screen name="bills/[id]" />
+        <Stack.Screen name="debts/index" />
+        <Stack.Screen name="debts/new" />
+        <Stack.Screen name="debts/[id]/index" />
+        <Stack.Screen name="debts/[id]/edit" />
+        <Stack.Screen name="groups/new" />
+        <Stack.Screen name="groups/[id]/index" />
+        <Stack.Screen name="groups/[id]/edit" />
       </Stack.Protected>
       <Stack.Protected guard={!onboarded}>
         <Stack.Screen name="onboarding" />

@@ -11,6 +11,7 @@ import {
 import { addDays, addMonths, addYears, format, startOfDay, startOfYear, subDays } from 'date-fns';
 
 import { monthPeriod, type Period, weekPeriod } from '../home/logic';
+import { debtCategory, debtFromKind } from '../plan/logic';
 
 interface ContextWallet {
   id: string;
@@ -55,8 +56,13 @@ export interface VoiceDraft {
   parsed: ParsedItem;
   /** A dollar amount the user said; saving needs it in UGX for now. */
   heardUsd: number | null;
-  /** Loans and repayments are kept for the debts feature (milestone 4), not saved yet. */
+  /** False for cards that can't be saved as they are. */
   savable: boolean;
+  /**
+   * A loan or repayment ("lent Musa 100k", "Musa paid me back 50k"): saving records the debt or
+   * the repayment against it, and the category is the matching debt category.
+   */
+  debt: { kind: NonNullable<ParsedItem['debt']>; person: string } | null;
 }
 
 /** Turns a parsed item into a card's starting values. The time of day is now, on the heard day. */
@@ -70,17 +76,24 @@ export function toDraft(
   const occurredAt = new Date(now);
   occurredAt.setFullYear(y, m - 1, d);
   const usd = item.currency === 'USD';
+  const debt = item.debt && item.person ? { kind: item.debt, person: item.person } : null;
+  const debtInfo = debt ? debtFromKind(debt.kind) : null;
   return {
     key,
     parsed: item,
     heardUsd: usd && item.amount ? item.amount / 100 : null,
-    savable: item.debt === null,
+    savable: true,
+    debt,
     input: {
       type: item.type,
       amount: usd ? 0 : (item.amount ?? 0),
       walletId: item.walletId ?? mainWalletId ?? '',
       toWalletId: item.type === 'transfer' ? item.toWalletId : null,
-      categoryId: item.type === 'transfer' ? null : item.categoryId,
+      categoryId: debtInfo
+        ? debtCategory(debtInfo.direction, debtInfo.repayment)
+        : item.type === 'transfer'
+          ? null
+          : item.categoryId,
       occurredAt,
       note: item.note,
       feeAmount: item.feeAmount,
@@ -99,6 +112,7 @@ export function draftFromInput(key: string, input: TransactionInput): VoiceDraft
     input,
     heardUsd: null,
     savable: true,
+    debt: null,
     parsed: {
       type: input.type,
       amount: input.amount || null,
@@ -146,7 +160,7 @@ export interface Learning {
 export function learningsFor(draft: VoiceDraft): Learning[] {
   const { input, parsed } = draft;
   const phrase = parsed.phrase.trim().toLowerCase();
-  if (!phrase || input.type === 'transfer' || !input.categoryId) return [];
+  if (!phrase || draft.debt || input.type === 'transfer' || !input.categoryId) return [];
   if (input.categoryId === parsed.categoryId) return [];
   return [{ phrase, targetType: 'category', targetId: input.categoryId }];
 }
@@ -269,4 +283,34 @@ export function answerQuestion(q: ParsedQuestion, data: AnswerData, now: Date): 
       };
     }
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Commands (budgets and goals)
+
+const words = (text: string) =>
+  text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 1);
+
+/**
+ * The goal a spoken contribution is for ("add 50k to my laptop goal"): the goal sharing the
+ * most words with what was heard, or the only goal when nothing matches.
+ */
+export function matchGoal<G extends { id: string; name: string }>(
+  heard: string,
+  goals: readonly G[],
+): G | null {
+  const said = new Set(words(heard));
+  let best: G | null = null;
+  let bestScore = 0;
+  for (const goal of goals) {
+    const score = words(goal.name).filter((w) => said.has(w) || said.has(`${w}s`)).length;
+    if (score > bestScore) {
+      best = goal;
+      bestScore = score;
+    }
+  }
+  return best ?? (goals.length === 1 ? goals[0]! : null);
 }

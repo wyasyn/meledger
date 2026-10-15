@@ -12,7 +12,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { LinearGradient } from 'expo-linear-gradient';
-import { formatMoney, localParse, type ParseResult } from '@meledger/shared';
+import { formatMoney, localParse, type ParsedCommand, type ParseResult } from '@meledger/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
@@ -51,6 +51,7 @@ import {
 import { useVoiceHold, useVoiceSheet } from '../store';
 import { useSpeechSession } from '../useSpeechSession';
 import { loadVocabulary } from '../vocabulary';
+import { type CommandIntent, CommandReview } from './CommandReview';
 import { Orb, type OrbMode } from './Orb';
 import { VoiceReview } from './VoiceReview';
 
@@ -66,26 +67,17 @@ type Outcome =
   | { kind: 'none' }
   | { kind: 'review'; drafts: VoiceDraft[]; mode: 'voice' | 'typed' | 'edit' }
   | { kind: 'answer'; answer: Answer }
+  | { kind: 'command'; intent: CommandIntent; command: ParsedCommand }
   | { kind: 'notice'; title: string; body: string; typeIt?: boolean };
 
 const COMING_SOON: Record<string, { title: string; body: string }> = {
-  set_budget: {
-    title: 'Budgets are coming soon',
-    body: 'Setting a budget by voice arrives with the Plan tab.',
-  },
-  set_goal: {
-    title: 'Goals are coming soon',
-    body: 'Creating a goal by voice arrives with the Plan tab.',
-  },
-  contribute_goal: {
-    title: 'Goals are coming soon',
-    body: 'Adding to a goal by voice arrives with the Plan tab.',
-  },
   add_reminder: {
     title: 'Reminders are coming soon',
-    body: 'Setting a reminder by voice arrives in a later update.',
+    body: 'Setting a reminder by voice arrives with notifications in a later update.',
   },
 };
+
+const COMMANDS: readonly string[] = ['set_budget', 'set_goal', 'contribute_goal'];
 
 /**
  * Mounted once in the root layout. openVoiceSheet() opens it listening; openEntrySheet(id)
@@ -95,7 +87,8 @@ export function VoiceSheetHost() {
   const insets = useSafeAreaInsets();
   const ref = useRef<BottomSheetModal>(null);
   const requestId = useVoiceSheet((s) => s.requestId);
-  const editing = useVoiceSheet((s) => s.request.mode === 'edit');
+  // Editing an entry or logging a bill opens straight at full height, without listening.
+  const editing = useVoiceSheet((s) => s.request.mode !== 'listen');
   const back = useSheetBackHandler(ref);
 
   useEffect(() => {
@@ -176,7 +169,7 @@ function VoicePanel() {
   const [outcome, setOutcome] = useState<Outcome>({ kind: 'none' });
   // What this opening is for; fixed for the sheet's lifetime (it unmounts on dismiss).
   const [request] = useState(() => useVoiceSheet.getState().request);
-  const editing = request.mode === 'edit';
+  const editing = request.mode !== 'listen';
 
   // The wallet for lines that name none: Home's wallet filter when it opened with one.
   const preferredWallet = useMemo(() => {
@@ -190,7 +183,14 @@ function VoicePanel() {
   // moves it into state. Read once, so live updates never reset what is being edited.
   const loaded = data !== undefined;
   const editOutcome = useMemo((): Outcome | null => {
-    if (request.mode !== 'edit' || !data) return null;
+    if (request.mode === 'listen' || !data) return null;
+    if (request.mode === 'recurring') {
+      return {
+        kind: 'review',
+        drafts: [draftFromInput(request.bill.ruleId, request.bill.input)],
+        mode: 'typed',
+      };
+    }
     const tx = data.transactions.find((t) => t.id === request.transactionId);
     if (!tx) {
       return {
@@ -252,6 +252,13 @@ function VoicePanel() {
         ),
       };
     }
+    if (COMMANDS.includes(result.intent) && result.command) {
+      return {
+        kind: 'command',
+        intent: result.intent as CommandIntent,
+        command: result.command,
+      };
+    }
     const soon = COMING_SOON[result.intent];
     if (soon) return { kind: 'notice', ...soon };
     return {
@@ -288,7 +295,7 @@ function VoicePanel() {
   }, [finished]);
 
   // The cards need room: ease up to full height to review them.
-  const reviewing = outcome.kind === 'review';
+  const reviewing = outcome.kind === 'review' || outcome.kind === 'command';
   useEffect(() => {
     if (reviewing) snapToIndex(1);
   }, [reviewing, snapToIndex]);
@@ -421,6 +428,24 @@ function VoicePanel() {
               ? 'Working it out…'
               : 'Say something like "lunch 12k cash", or tap the keyboard to type';
 
+  if (shown.kind === 'command' && data) {
+    return (
+      <BottomSheetView style={styles.root}>
+        <Animated.View style={[styles.review, reviewStyle]}>
+          <CommandReview
+            intent={shown.intent}
+            command={shown.command}
+            transcript={transcript}
+            data={data}
+            footerStyle={footerStyle}
+            spacerStyle={spacerStyle}
+            onDone={close}
+          />
+        </Animated.View>
+      </BottomSheetView>
+    );
+  }
+
   if (shown.kind === 'review' && data) {
     return (
       <BottomSheetView style={styles.root}>
@@ -431,6 +456,7 @@ function VoicePanel() {
             transcript={shown.mode === 'voice' ? transcript : ''}
             mode={shown.mode}
             editId={request.mode === 'edit' ? request.transactionId : undefined}
+            bill={request.mode === 'recurring' ? request.bill : undefined}
             drafts={shown.drafts}
             data={data}
             onDrafts={(drafts) => setOutcome({ ...shown, drafts })}

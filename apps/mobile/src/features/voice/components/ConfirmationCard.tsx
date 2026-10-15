@@ -1,4 +1,4 @@
-import { formatMoney, type ParseField, type TransactionType } from '@meledger/shared';
+import { type ParseField, type TransactionType } from '@meledger/shared';
 import { format } from 'date-fns';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -102,40 +102,6 @@ export function ConfirmationCard({
 
   const label = title ?? (total > 1 ? `Entry ${index + 1} of ${total}` : 'New entry');
 
-  if (!draft.savable) {
-    return (
-      <Animated.View
-        entering={FadeInDown.duration(260)}
-        exiting={FadeOut.duration(160)}
-        layout={LinearTransition}
-      >
-        <View style={styles.header}>
-          <Text variant="label" tone="muted" style={styles.flex}>
-            {label}
-          </Text>
-          <IconButton
-            icon="close"
-            label="Remove this entry"
-            variant="surface"
-            size={36}
-            onPress={onRemove}
-          />
-        </View>
-        <FieldCard>
-          <View style={styles.row}>
-            <IconTile icon="coins" color={lightColors.onSurfaceVariant} size={40} />
-            <View style={styles.flex}>
-              <Text variant="subtitle">{debtTitle(draft)}</Text>
-              <Text variant="caption" tone="muted">
-                {"Loans and repayments arrive with the Plan tab soon. This one won't be saved yet."}
-              </Text>
-            </View>
-          </View>
-        </FieldCard>
-      </Animated.View>
-    );
-  }
-
   return (
     <Animated.View
       entering={FadeInDown.duration(260).delay(index * 60)}
@@ -147,26 +113,28 @@ export function ConfirmationCard({
         <Text variant="label" tone="muted" style={styles.flex}>
           {label}
         </Text>
-        <Menu
-          items={TYPE_ITEMS}
-          selected={input.type}
-          onSelect={changeType}
-          accessibilityLabel="Entry type"
-          anchor={(open) => (
-            <PressableScale
-              onPress={open}
-              accessibilityRole="button"
-              accessibilityLabel={`Entry type: ${TYPE_LABELS[input.type]}. Change`}
-              style={[
-                styles.typePill,
-                unsure('type', input.type !== parsed.type) && styles.typePillCheck,
-              ]}
-            >
-              <Text variant="label">{TYPE_LABELS[input.type]}</Text>
-              <Icon name="chevron-down" weight="bold" size={14} color={lightColors.onSurface} />
-            </PressableScale>
-          )}
-        />
+        {draft.debt ? null : (
+          <Menu
+            items={TYPE_ITEMS}
+            selected={input.type}
+            onSelect={changeType}
+            accessibilityLabel="Entry type"
+            anchor={(open) => (
+              <PressableScale
+                onPress={open}
+                accessibilityRole="button"
+                accessibilityLabel={`Entry type: ${TYPE_LABELS[input.type]}. Change`}
+                style={[
+                  styles.typePill,
+                  unsure('type', input.type !== parsed.type) && styles.typePillCheck,
+                ]}
+              >
+                <Text variant="label">{TYPE_LABELS[input.type]}</Text>
+                <Icon name="chevron-down" weight="bold" size={14} color={lightColors.onSurface} />
+              </PressableScale>
+            )}
+          />
+        )}
         {/* With several entries it removes this one; on its own it closes the sheet. */}
         <IconButton
           icon="close"
@@ -177,8 +145,28 @@ export function ConfirmationCard({
         />
       </View>
 
+      {draft.debt ? (
+        <View style={styles.debtBanner}>
+          <IconTile
+            icon={
+              draft.debt.kind === 'lend' || draft.debt.kind === 'repaid_to_me' ? 'lend' : 'borrow'
+            }
+            color="amber"
+            size={40}
+          />
+          <View style={styles.flex}>
+            <Text variant="subtitle">{debtTitle(draft)}</Text>
+            <Text variant="caption" tone="muted">
+              {debtHint(draft.debt.kind)}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       <AccountCard
-        label={transfer ? 'From' : 'Account'}
+        label={
+          transfer ? 'From' : draft.debt ? (input.type === 'income' ? 'Into' : 'From') : 'Account'
+        }
         wallet={wallet}
         isMain={input.walletId === mainId}
         onChange={() => onPick('wallet')}
@@ -210,7 +198,7 @@ export function ConfirmationCard({
         }
       />
 
-      {transfer ? (
+      {draft.debt ? null : transfer ? (
         <AmountField
           label="Fee (optional)"
           value={input.feeAmount}
@@ -279,19 +267,24 @@ export function ConfirmationCard({
   );
 }
 
-function debtTitle({ parsed }: VoiceDraft): string {
-  const amount = parsed.amount ? formatMoney(parsed.amount, parsed.currency) : 'an amount';
-  const person = parsed.person ?? 'someone';
-  switch (parsed.debt) {
+function debtTitle({ debt }: VoiceDraft): string {
+  const person = debt?.person ?? 'someone';
+  switch (debt?.kind) {
     case 'lend':
-      return `Lent ${person} ${amount}`;
+      return `Lent to ${person}`;
     case 'borrow':
-      return `Borrowed ${amount} from ${person}`;
+      return `Borrowed from ${person}`;
     case 'repaid_to_me':
-      return `${person} paid back ${amount}`;
+      return `${person} paid you back`;
     default:
-      return `Paid back ${person} ${amount}`;
+      return `Paid back ${person}`;
   }
+}
+
+function debtHint(kind: NonNullable<VoiceDraft['debt']>['kind']): string {
+  return kind === 'lend' || kind === 'borrow'
+    ? 'Saving adds it to Debts & loans in your Plan.'
+    : 'Saving counts it against the open debt with them.';
 }
 
 const styles = StyleSheet.create({
@@ -307,6 +300,15 @@ const styles = StyleSheet.create({
     height: 36,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.pill,
+    backgroundColor: lightColors.surface,
+    boxShadow: shadow.card,
+  },
+  debtBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: radius.field,
     backgroundColor: lightColors.surface,
     boxShadow: shadow.card,
   },

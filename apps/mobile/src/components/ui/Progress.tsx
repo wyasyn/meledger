@@ -19,8 +19,10 @@ export function ProgressBar({
   color?: string;
   height?: number;
 }) {
+  // Worked out on the JS side: worklets can't call plain functions like clamp.
+  const pct = `${clamp(value) * 100}%` as const;
   const fill = useAnimatedStyle(() => ({
-    width: `${withTiming(clamp(value) * 100, { duration: motion.slow })}%`,
+    width: withTiming(pct, { duration: motion.slow }),
   }));
   return (
     <View
@@ -51,8 +53,9 @@ export function ProgressRing({
 }) {
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
+  const offset = circumference * (1 - clamp(value));
   const props = useAnimatedProps(() => ({
-    strokeDashoffset: withTiming(circumference * (1 - clamp(value)), { duration: motion.slow }),
+    strokeDashoffset: withTiming(offset, { duration: motion.slow }),
   }));
   const pct = Math.round(clamp(value) * 100);
   return (

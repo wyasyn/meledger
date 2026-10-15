@@ -19,6 +19,7 @@ import { BriefcaseIcon } from 'phosphor-react-native/src/icons/Briefcase';
 import { BuildingsIcon } from 'phosphor-react-native/src/icons/Buildings';
 import { BusIcon } from 'phosphor-react-native/src/icons/Bus';
 import { CalendarBlankIcon } from 'phosphor-react-native/src/icons/CalendarBlank';
+import { CarIcon } from 'phosphor-react-native/src/icons/Car';
 import { CaretDownIcon } from 'phosphor-react-native/src/icons/CaretDown';
 import { CaretLeftIcon } from 'phosphor-react-native/src/icons/CaretLeft';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
@@ -35,6 +36,11 @@ import { CreditCardIcon } from 'phosphor-react-native/src/icons/CreditCard';
 import { CurrencyCircleDollarIcon } from 'phosphor-react-native/src/icons/CurrencyCircleDollar';
 import { DeviceMobileIcon } from 'phosphor-react-native/src/icons/DeviceMobile';
 import { DotsThreeCircleIcon } from 'phosphor-react-native/src/icons/DotsThreeCircle';
+import { DotsThreeVerticalIcon } from 'phosphor-react-native/src/icons/DotsThreeVertical';
+import { ExportIcon } from 'phosphor-react-native/src/icons/Export';
+import { ChartBarIcon } from 'phosphor-react-native/src/icons/ChartBar';
+import { RepeatIcon } from 'phosphor-react-native/src/icons/Repeat';
+import { CalendarCheckIcon } from 'phosphor-react-native/src/icons/CalendarCheck';
 import { DropIcon } from 'phosphor-react-native/src/icons/Drop';
 import { FileMagnifyingGlassIcon } from 'phosphor-react-native/src/icons/FileMagnifyingGlass';
 import { FilmSlateIcon } from 'phosphor-react-native/src/icons/FilmSlate';
@@ -50,8 +56,12 @@ import { GiftIcon } from 'phosphor-react-native/src/icons/Gift';
 import { GlobeIcon } from 'phosphor-react-native/src/icons/Globe';
 import { GraduationCapIcon } from 'phosphor-react-native/src/icons/GraduationCap';
 import { HamburgerIcon } from 'phosphor-react-native/src/icons/Hamburger';
+import { HandArrowDownIcon } from 'phosphor-react-native/src/icons/HandArrowDown';
+import { HandArrowUpIcon } from 'phosphor-react-native/src/icons/HandArrowUp';
 import { HandCoinsIcon } from 'phosphor-react-native/src/icons/HandCoins';
+import { HandDepositIcon } from 'phosphor-react-native/src/icons/HandDeposit';
 import { HandHeartIcon } from 'phosphor-react-native/src/icons/HandHeart';
+import { HandshakeIcon } from 'phosphor-react-native/src/icons/Handshake';
 import { HandsPrayingIcon } from 'phosphor-react-native/src/icons/HandsPraying';
 import { HeartIcon } from 'phosphor-react-native/src/icons/Heart';
 import { HouseIcon } from 'phosphor-react-native/src/icons/House';
@@ -162,6 +172,12 @@ const STORED: Record<StoredIconKey, PhosphorIcon> = {
   card: CreditCardIcon,
   'piggy-bank': PiggyBankIcon,
   land: PlantIcon,
+  house: HouseIcon,
+  car: CarIcon,
+  lend: HandArrowUpIcon,
+  borrow: HandArrowDownIcon,
+  repay: HandshakeIcon,
+  repaid: HandDepositIcon,
 };
 
 /** Keys used only by the app's own UI. */
@@ -212,6 +228,14 @@ const UI = {
   briefcase: BriefcaseIcon,
   'trend-up': TrendUpIcon,
   'trend-down': TrendDownIcon,
+  more: DotsThreeVerticalIcon,
+  share: ExportIcon,
+  'chart-bar': ChartBarIcon,
+  'chart-donut': ChartPieSliceIcon,
+  repeat: RepeatIcon,
+  'calendar-check': CalendarCheckIcon,
+  debt: HandCoinsIcon,
+  group: UsersThreeIcon,
 } satisfies Record<string, PhosphorIcon>;
 
 export const ICONS: Record<StoredIconKey | keyof typeof UI, PhosphorIcon> = { ...STORED, ...UI };

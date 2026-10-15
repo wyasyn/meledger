@@ -51,6 +51,7 @@ export async function finishOnboarding(): Promise<void> {
       ...created(),
       name: draft.goal.name,
       icon: draft.goal.icon,
+      color: draft.goal.color,
       targetAmount: draft.goal.target,
       status: 'active',
     });

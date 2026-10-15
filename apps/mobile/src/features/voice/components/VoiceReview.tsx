@@ -24,10 +24,20 @@ import {
   updateTransaction,
 } from '@/features/transactions/repo';
 import type { LedgerData } from '@/features/transactions/useLedgerData';
+import { debtBalance, debtFromKind } from '@/features/plan/logic';
+import {
+  createDebt,
+  deleteDebt,
+  openDebtWith,
+  recordRepayment,
+  setDebtStatus,
+  setRecurringDue,
+} from '@/features/plan/repo';
 import { mainWalletId } from '@/features/wallets/logic';
 import { lightColors, radius, spacing } from '@/theme/tokens';
 
 import { learningsFor, type VoiceDraft } from '../logic';
+import type { RecurringLog } from '../store';
 import { learn } from '../vocabulary';
 import { ConfirmationCard, type DraftErrors, type PickerField } from './ConfirmationCard';
 
@@ -43,6 +53,8 @@ interface VoiceReviewProps {
    */
   mode: 'voice' | 'typed' | 'edit';
   editId?: string;
+  /** A recurring bill being logged: saving moves it to its next due date. */
+  bill?: RecurringLog;
   drafts: VoiceDraft[];
   data: LedgerData;
   onDrafts: (drafts: VoiceDraft[]) => void;
@@ -52,6 +64,52 @@ interface VoiceReviewProps {
   spacerStyle?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
   /** Called after saving or discarding; the sheet closes. */
   onDone: () => void;
+}
+
+/**
+ * Saves a spoken loan or repayment. A loan becomes a new debt with its entry; a repayment is
+ * recorded against the open debt with that person (or as a plain entry when there is none).
+ * Returns how to undo it.
+ */
+async function saveDebtDraft(d: VoiceDraft, data: LedgerData): Promise<() => void> {
+  const { kind, person } = d.debt!;
+  const { direction, repayment } = debtFromKind(kind);
+  const { input } = d;
+  if (!repayment) {
+    const debtId = await createDebt(
+      {
+        person,
+        direction,
+        principal: input.amount,
+        startedAt: input.occurredAt,
+        dueAt: null,
+        note: '',
+        walletId: input.walletId,
+      },
+      'voice',
+    );
+    return () => void deleteDebt(debtId);
+  }
+  const open = await openDebtWith(person, direction);
+  if (!open) {
+    const id = await createTransaction(input, 'voice');
+    return () => void deleteTransaction(id);
+  }
+  const repaid = debtBalance(
+    open.debt,
+    data.transactions.map((tx) => ({ ...tx, occurredAt: tx.occurredAt.getTime() })),
+  ).repaid;
+  const id = await recordRepayment(
+    open.debt,
+    open.person,
+    { amount: input.amount, walletId: input.walletId, occurredAt: input.occurredAt },
+    repaid,
+    'voice',
+  );
+  return () => {
+    void deleteTransaction(id);
+    void setDebtStatus(open.debt.id, 'open');
+  };
 }
 
 function errorsFor(draft: VoiceDraft): DraftErrors {
@@ -70,6 +128,7 @@ export function VoiceReview({
   transcript,
   mode,
   editId,
+  bill,
   drafts,
   data,
   onDrafts,
@@ -128,25 +187,36 @@ export function VoiceReview({
       onDone();
       return;
     }
-    const ids: string[] = [];
+    // Each save adds how to take it back, for the snackbar's Undo.
+    const undo: (() => void)[] = [];
     for (const d of savable) {
       const c = d.parsed.confidence;
       const confidence = Math.min(c.amount, c.type, c.wallet, c.category, c.date);
-      ids.push(
+      if (d.debt) {
+        undo.push(await saveDebtDraft(d, data));
+        continue;
+      }
+      const id =
         mode === 'typed'
           ? await createTransaction(d.input, 'keyboard')
-          : await createTransaction(d.input, 'voice', { transcript, confidence }),
-      );
+          : await createTransaction(d.input, 'voice', { transcript, confidence });
+      undo.push(() => void deleteTransaction(id));
     }
     if (mode === 'voice') await learn(savable.flatMap(learningsFor));
+    if (bill) await setRecurringDue(bill.ruleId, bill.nextDueAt);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     showSnackbar({
-      message: ids.length === 1 ? 'Saved 1 entry' : `Saved ${ids.length} entries`,
+      message: bill
+        ? `Logged ${bill.name}`
+        : undo.length === 1
+          ? 'Saved 1 entry'
+          : `Saved ${undo.length} entries`,
       duration: 5000,
       action: {
         label: 'Undo',
         onPress: () => {
-          for (const id of ids) deleteTransaction(id);
+          for (const take of undo) take();
+          if (bill) void setRecurringDue(bill.ruleId, bill.dueAt);
         },
       },
     });
@@ -195,8 +265,8 @@ export function VoiceReview({
             onChange={update}
             onRemove={() => remove(d.key)}
             onPick={(field) => pick(d.key, field)}
-            autoFocusAmount={mode === 'typed'}
-            title={mode === 'edit' ? 'Edit entry' : undefined}
+            autoFocusAmount={mode === 'typed' && !bill}
+            title={mode === 'edit' ? 'Edit entry' : bill ? `Log ${bill.name}` : undefined}
           />
         ))}
         <Animated.View style={spacerStyle} />

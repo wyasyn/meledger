@@ -1,11 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  CATEGORY_COLORS,
-  type CategoryColor,
-  type WalletInput,
-  WalletInputSchema,
-  WALLET_TYPES,
-} from '@meledger/shared';
+import { type WalletInput, WalletInputSchema, WALLET_TYPES } from '@meledger/shared';
 import type { ReactNode } from 'react';
 import { type Path, type PathValue, useForm, useWatch } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
@@ -15,9 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AmountField } from '@/components/ui/AmountField';
 import { Button } from '@/components/ui/Button';
 import { Chip, ChipGroup } from '@/components/ui/Chip';
+import { ColorSwatches } from '@/components/ui/ColorSwatches';
 import { FieldCard } from '@/components/ui/FieldCard';
-import { Icon } from '@/components/ui/Icon';
-import { PressableScale } from '@/components/ui/PressableScale';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { TextField } from '@/components/ui/TextField';
 import { lightColors, spacing } from '@/theme/tokens';
@@ -32,8 +25,6 @@ interface WalletFormProps {
   editing?: boolean;
   footer?: ReactNode;
 }
-
-const COLORS = Object.keys(CATEGORY_COLORS) as CategoryColor[];
 
 export function WalletForm({ title, initial, onSubmit, editing = false, footer }: WalletFormProps) {
   const insets = useSafeAreaInsets();
@@ -100,30 +91,7 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
         />
 
         <FieldCard label="Colour">
-          <View style={styles.swatches}>
-            {COLORS.map((color) => {
-              const selected = values.color === color;
-              return (
-                <PressableScale
-                  key={color}
-                  onPress={() => set('color', color)}
-                  scaleTo={0.88}
-                  accessibilityRole="radio"
-                  accessibilityLabel={color}
-                  accessibilityState={{ selected }}
-                  style={[
-                    styles.swatch,
-                    { backgroundColor: CATEGORY_COLORS[color] },
-                    selected && {
-                      boxShadow: `0 0 0 3px #FFFFFF, 0 0 0 5px ${CATEGORY_COLORS[color]}`,
-                    },
-                  ]}
-                >
-                  {selected ? <Icon name="check" weight="bold" size={16} color="#FFFFFF" /> : null}
-                </PressableScale>
-              );
-            })}
-          </View>
+          <ColorSwatches value={values.color} onChange={(color) => set('color', color)} />
         </FieldCard>
 
         <Button label="Save" onPress={handleSubmit(onSubmit)} loading={isSubmitting} block />
@@ -136,12 +104,4 @@ export function WalletForm({ title, initial, onSubmit, editing = false, footer }
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: lightColors.background },
   content: { paddingHorizontal: spacing.gutter, gap: spacing.md },
-  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, paddingVertical: 4 },
-  swatch: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 });

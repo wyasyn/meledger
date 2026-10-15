@@ -28,6 +28,18 @@ export interface CategorySeed {
   color: CategoryColor;
 }
 
+/**
+ * Categories for money that moves because of a debt (build prompt section 7: repayments link to
+ * debts through transactions.debt_id). Lending and repaying take money out; borrowing and being
+ * repaid bring it in.
+ */
+export const DEBT_CATEGORY_IDS = {
+  lent: 'c02931c1-119d-4334-8675-fba4c35e99a1',
+  repay: '0a9e5ecb-cc9d-46e3-9b46-5b207f6e6820',
+  borrowed: '7f6ff002-92ee-4119-b92c-1ae990a1602e',
+  repaidToMe: '76f372d9-76a8-4c77-a6af-fdd80accd1e9',
+} as const;
+
 /** System categories from both reference sheets plus local ones (build prompt section 7). */
 export const CATEGORY_SEEDS: readonly CategorySeed[] = [
   {
@@ -391,6 +403,22 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     color: 'slate',
   },
   {
+    id: DEBT_CATEGORY_IDS.lent,
+    name: 'Lent out',
+    kind: 'expense',
+    group: 'Debts & loans',
+    icon: 'lend',
+    color: 'amber',
+  },
+  {
+    id: DEBT_CATEGORY_IDS.repay,
+    name: 'Debt repayment',
+    kind: 'expense',
+    group: 'Debts & loans',
+    icon: 'repay',
+    color: 'amber',
+  },
+  {
     id: '0cf1713c-3f12-46bf-9180-1e9c8900755b',
     name: 'Salary',
     kind: 'income',
@@ -445,5 +473,21 @@ export const CATEGORY_SEEDS: readonly CategorySeed[] = [
     group: 'Income',
     icon: 'other',
     color: 'green',
+  },
+  {
+    id: DEBT_CATEGORY_IDS.borrowed,
+    name: 'Borrowed',
+    kind: 'income',
+    group: 'Income',
+    icon: 'borrow',
+    color: 'amber',
+  },
+  {
+    id: DEBT_CATEGORY_IDS.repaidToMe,
+    name: 'Loan repaid to me',
+    kind: 'income',
+    group: 'Income',
+    icon: 'repaid',
+    color: 'amber',
   },
 ];

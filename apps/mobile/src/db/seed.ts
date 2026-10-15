@@ -9,8 +9,8 @@ import { categories, profile, wallets } from './schema';
 
 /**
  * First-launch data: the profile row, system categories and a Cash main wallet.
- * Idempotent; each part only runs while its table is empty (deleted rows count).
- * Onboarding (milestone 5) will replace the default wallet with the user's choice.
+ * Idempotent: the profile and wallet only run while their table is empty (deleted rows count),
+ * and system categories added in later versions are inserted by their fixed id.
  */
 export function seedDatabase(): void {
   const stamps = created();
@@ -22,14 +22,19 @@ export function seedDatabase(): void {
         .run();
     }
 
-    const [cats] = tx.select({ n: count() }).from(categories).all();
-    if (cats.n === 0) {
-      CATEGORY_SEEDS.forEach((seed, sort) => {
-        tx.insert(categories)
-          .values({ ...seed, ...stamps, isSystem: true, sort })
-          .run();
-      });
-    }
+    const existing = new Set(
+      tx
+        .select({ id: categories.id })
+        .from(categories)
+        .all()
+        .map((c) => c.id),
+    );
+    CATEGORY_SEEDS.forEach((seed, sort) => {
+      if (existing.has(seed.id)) return;
+      tx.insert(categories)
+        .values({ ...seed, ...stamps, isSystem: true, sort })
+        .run();
+    });
 
     const [walletRows] = tx.select({ n: count() }).from(wallets).all();
     if (walletRows.n === 0) {

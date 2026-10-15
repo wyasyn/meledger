@@ -199,7 +199,8 @@ const styles = StyleSheet.create({
   week: { flexDirection: 'row' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: { flex: 1 },
-  cellWrap: { width: `${100 / 7}%`, height: CELL, alignItems: 'center', justifyContent: 'center' },
+  // Just under a seventh: an exact 100/7% rounds up on some widths and wraps the seventh day.
+  cellWrap: { width: '14.28%', height: CELL, alignItems: 'center', justifyContent: 'center' },
   band: { backgroundColor: lightColors.primaryContainer },
   bandStart: {
     backgroundColor: lightColors.primaryContainer,

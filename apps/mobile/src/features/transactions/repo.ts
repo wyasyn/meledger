@@ -31,6 +31,8 @@ export async function createTransaction(
   input: TransactionInput,
   source: TransactionSource = 'keyboard',
   voice?: VoiceMeta,
+  /** The debt this entry lends, borrows or repays. */
+  debtId: string | null = null,
 ): Promise<string> {
   const id = newId();
   const stamps = created();
@@ -43,6 +45,7 @@ export async function createTransaction(
         source,
         transcript: voice?.transcript ?? null,
         confidence: voice?.confidence ?? null,
+        debtId,
       })
       .run();
     for (const tagId of input.tagIds) {

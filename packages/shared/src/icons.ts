@@ -57,8 +57,15 @@ export const STORED_ICON_KEYS = [
   'equipment',
   'internet',
   'maintenance',
+  // Debts
+  'lend',
+  'borrow',
+  'repay',
+  'repaid',
   // Goals
   'land',
+  'house',
+  'car',
   // Wallet types
   'cash',
   'mobile-money',
